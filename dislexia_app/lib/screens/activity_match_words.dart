@@ -2,7 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:provider/provider.dart';
 import '../widgets/word_card.dart';
+import '../services/firestore_service.dart';
+import '../main.dart';
 
 /// Atividade de Associação de Palavras com Imagens
 /// O usuário deve associar 3 palavras com suas respectivas imagens
@@ -125,8 +128,13 @@ class _ActivityMatchWordsState extends State<ActivityMatchWords> {
     });
   }
 
-  /// Mostra diálogo de conclusão
-  void _showCompletionDialog() {
+  /// Mostra diálogo de conclusão e salva progresso
+  void _showCompletionDialog() async {
+    // Salva progresso no Firestore
+    await _saveProgress();
+
+    if (!mounted) return;
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -138,9 +146,38 @@ class _ActivityMatchWordsState extends State<ActivityMatchWords> {
             Text('Parabéns!'),
           ],
         ),
-        content: const Text(
-          'Você completou a atividade com sucesso!\n\nTodas as palavras foram associadas corretamente.',
-          style: TextStyle(fontSize: 16),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Você completou a atividade com sucesso!',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.star, color: Colors.amber.shade700, size: 28),
+                  const SizedBox(width: 8),
+                  const Text(
+                    '+50 pontos',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -160,6 +197,38 @@ class _ActivityMatchWordsState extends State<ActivityMatchWords> {
         ],
       ),
     );
+  }
+
+  /// Salva progresso da atividade no Firestore
+  Future<void> _saveProgress() async {
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+      if (userProvider.uid != null) {
+        final firestoreService = FirestoreService();
+
+        // Calcula pontos baseado na performance
+        const int pointsPerActivity = 50;
+
+        // Salva no Firestore
+        await firestoreService.completeActivity(
+          uid: userProvider.uid!,
+          activityId: 'match_words_basic',
+          activityName: 'Associar Palavras',
+          points: pointsPerActivity,
+          attempts: 1,
+          accuracy: 1.0, // 100% de acerto
+        );
+
+        // Atualiza provider localmente
+        userProvider.updateProgress(
+          totalPoints: userProvider.totalPoints + pointsPerActivity,
+          activitiesCompleted: userProvider.activitiesCompleted + 1,
+        );
+      }
+    } catch (e) {
+      debugPrint('Erro ao salvar progresso: $e');
+    }
   }
 
   /// Reseta a atividade

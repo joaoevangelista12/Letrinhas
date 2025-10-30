@@ -112,6 +112,7 @@ class _RegisterPageState extends State<RegisterPage> {
       // Atualiza o Provider com dados do usuário
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       userProvider.updateUser(
+        result.user!.uid,
         result.user!.email!,
         result.user!.displayName,
       );

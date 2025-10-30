@@ -83,30 +83,58 @@ class DislexiaApp extends StatelessWidget {
 }
 
 /// Provider para gerenciar estado do usuário
-/// Agora usando Firebase Authentication
+/// Agora usando Firebase Authentication e Firestore
 class UserProvider extends ChangeNotifier {
+  String? _uid;
   String? _userName;
   String? _userEmail;
   bool _isLoggedIn = false;
+  int _totalPoints = 0;
+  int _activitiesCompleted = 0;
+  int _level = 1;
+  double _levelProgress = 0.0;
 
   // Getters
+  String? get uid => _uid;
   String? get userName => _userName;
   String? get userEmail => _userEmail;
   bool get isLoggedIn => _isLoggedIn;
+  int get totalPoints => _totalPoints;
+  int get activitiesCompleted => _activitiesCompleted;
+  int get level => _level;
+  double get levelProgress => _levelProgress;
 
   /// Atualiza estado do usuário com dados do Firebase
-  void updateUser(String email, String? displayName) {
+  void updateUser(String uid, String email, String? displayName) {
+    _uid = uid;
     _userEmail = email;
     _userName = displayName ?? email.split('@')[0];
     _isLoggedIn = true;
     notifyListeners();
   }
 
+  /// Atualiza progresso do usuário com dados do Firestore
+  void updateProgress({
+    required int totalPoints,
+    required int activitiesCompleted,
+  }) {
+    _totalPoints = totalPoints;
+    _activitiesCompleted = activitiesCompleted;
+    _level = (totalPoints / 100).floor() + 1;
+    _levelProgress = (totalPoints % 100) / 100;
+    notifyListeners();
+  }
+
   /// Limpa estado do usuário
   void clearUser() {
+    _uid = null;
     _userName = null;
     _userEmail = null;
     _isLoggedIn = false;
+    _totalPoints = 0;
+    _activitiesCompleted = 0;
+    _level = 1;
+    _levelProgress = 0.0;
     notifyListeners();
   }
 }

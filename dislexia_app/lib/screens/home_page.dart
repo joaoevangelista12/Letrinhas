@@ -4,11 +4,51 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
+import '../models/user_model.dart';
 
 /// Tela principal (Home)
 /// Exibe menu com atividades disponíveis e informações do usuário
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final FirestoreService _firestoreService = FirestoreService();
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  /// Carrega dados do usuário do Firestore
+  Future<void> _loadUserData() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    if (userProvider.uid != null) {
+      try {
+        final userData = await _firestoreService.getUser(userProvider.uid!);
+
+        if (userData != null && mounted) {
+          userProvider.updateProgress(
+            totalPoints: userData.totalPoints,
+            activitiesCompleted: userData.activitiesCompleted,
+          );
+        }
+      } catch (e) {
+        debugPrint('Erro ao carregar dados: $e');
+      }
+    }
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +79,13 @@ class HomePage extends StatelessWidget {
             children: [
               // Cabeçalho com saudação
               _buildHeader(userName),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
+
+              // Cards de Progresso
+              if (!_isLoading) ...[
+                _buildProgressCards(userProvider),
+                const SizedBox(height: 32),
+              ],
 
               // Seção de atividades
               Text(
@@ -91,6 +137,166 @@ class HomePage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Constrói cards de progresso do usuário
+  Widget _buildProgressCards(UserProvider userProvider) {
+    return Column(
+      children: [
+        // Título da seção
+        Row(
+          children: [
+            Icon(Icons.trending_up, color: Colors.orange.shade700, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'Seu Progresso',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Grade de cards
+        Row(
+          children: [
+            // Card de Pontos
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.star,
+                label: 'Pontos',
+                value: userProvider.totalPoints.toString(),
+                color: Colors.amber,
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // Card de Nível
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.emoji_events,
+                label: 'Nível',
+                value: userProvider.level.toString(),
+                color: Colors.purple,
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // Card de Atividades
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.check_circle,
+                label: 'Completas',
+                value: userProvider.activitiesCompleted.toString(),
+                color: Colors.green,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Barra de progresso de nível
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 5,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Progresso do Nível ${userProvider.level}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    '${(userProvider.levelProgress * 100).toInt()}%',
+                    style: TextStyle(
+                      color: Colors.blue.shade700,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: userProvider.levelProgress,
+                  backgroundColor: Colors.grey.shade200,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade600),
+                  minHeight: 10,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Faltam ${(100 - userProvider.levelProgress * 100).toInt()} pontos para o nível ${userProvider.level + 1}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Constrói card de estatística individual
+  Widget _buildStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: color.shade800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade700,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -84,6 +84,7 @@ class _LoginPageState extends State<LoginPage> {
       // Atualiza o Provider com dados do usuário
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       userProvider.updateUser(
+        result.user!.uid,
         result.user!.email!,
         result.user!.displayName,
       );

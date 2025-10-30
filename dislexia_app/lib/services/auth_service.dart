@@ -1,12 +1,16 @@
 // arquivo: lib/services/auth_service.dart
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'firestore_service.dart';
 
 /// Serviço de Autenticação do Firebase
 /// Centraliza todas as operações de autenticação
 class AuthService {
   // Instância do FirebaseAuth
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // Instância do FirestoreService
+  final FirestoreService _firestoreService = FirestoreService();
 
   // Stream do estado de autenticação
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -22,6 +26,16 @@ class AuthService {
         email: email.trim(),
         password: password,
       );
+
+      // Atualiza último login no Firestore
+      if (credential.user != null) {
+        await _firestoreService.createUser(
+          uid: credential.user!.uid,
+          name: credential.user!.displayName ?? email.split('@')[0],
+          email: credential.user!.email!,
+        );
+      }
+
       return AuthResult(
         success: true,
         user: credential.user,
@@ -47,7 +61,7 @@ class AuthService {
     required String password,
   }) async {
     try {
-      // Cria usuário no Firebase
+      // Cria usuário no Firebase Auth
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password,
@@ -58,6 +72,15 @@ class AuthService {
 
       // Recarrega usuário para obter dados atualizados
       await credential.user?.reload();
+
+      // Cria documento do usuário no Firestore
+      if (credential.user != null) {
+        await _firestoreService.createUser(
+          uid: credential.user!.uid,
+          name: name,
+          email: email.trim(),
+        );
+      }
 
       return AuthResult(
         success: true,
