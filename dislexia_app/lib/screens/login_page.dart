@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../widgets/custom_button.dart';
+import '../services/auth_service.dart';
 
 /// Tela de Login
 /// Permite que o usuário faça login com email e senha
@@ -59,7 +60,7 @@ class _LoginPageState extends State<LoginPage> {
     return null;
   }
 
-  /// Realiza o login
+  /// Realiza o login usando Firebase Authentication
   void _handleLogin() async {
     // Valida o formulário
     if (!_formKey.currentState!.validate()) {
@@ -68,36 +69,115 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _isLoading = true);
 
-    // Simula delay de requisição (remover em produção com API real)
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (!mounted) return;
-
-    // Tenta fazer login usando o Provider
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final success = userProvider.login(
+    // Tenta fazer login usando Firebase
+    final authService = AuthService();
+    final result = await authService.signInWithEmail(
       _emailController.text.trim(),
       _passwordController.text,
     );
 
     setState(() => _isLoading = false);
 
-    if (success) {
-      // Login bem-sucedido, navega para home
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
+    if (!mounted) return;
+
+    if (result.success && result.user != null) {
+      // Atualiza o Provider com dados do usuário
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      userProvider.updateUser(
+        result.user!.email!,
+        result.user!.displayName,
+      );
+
+      // Mostra mensagem de sucesso
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Navega para home
+      Navigator.of(context).pushReplacementNamed('/home');
     } else {
-      // Mostra erro
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Email ou senha inválidos'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      // Mostra erro do Firebase
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
+  }
+
+  /// Mostra diálogo para redefinir senha
+  void _showResetPasswordDialog() {
+    final emailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Redefinir Senha'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Digite seu email para receber as instruções de redefinição de senha.',
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final email = emailController.text.trim();
+              if (email.isEmpty || !email.contains('@')) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Digite um email válido'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              Navigator.of(context).pop(); // Fecha diálogo
+
+              // Envia email de redefinição
+              final authService = AuthService();
+              final result = await authService.resetPassword(email);
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(result.message),
+                    backgroundColor:
+                        result.success ? Colors.green : Colors.red,
+                    duration: const Duration(seconds: 4),
+                  ),
+                );
+              }
+            },
+            child: const Text('Enviar'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -201,7 +281,17 @@ class _LoginPageState extends State<LoginPage> {
                         text: 'Entrar',
                         onPressed: _handleLogin,
                       ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
+
+                // Link para redefinir senha
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _showResetPasswordDialog,
+                    child: const Text('Esqueci minha senha'),
+                  ),
+                ),
+                const SizedBox(height: 8),
 
                 // Link para cadastro
                 Row(

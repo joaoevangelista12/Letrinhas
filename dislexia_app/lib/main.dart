@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'screens/splash_page.dart';
 import 'screens/login_page.dart';
 import 'screens/register_page.dart';
@@ -9,7 +10,13 @@ import 'screens/home_page.dart';
 import 'screens/activity_match_words.dart';
 
 // Ponto de entrada da aplicação
-void main() {
+void main() async {
+  // Garante que os bindings do Flutter estão inicializados
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializa o Firebase
+  await Firebase.initializeApp();
+
   runApp(
     // Provider para gerenciar estado do usuário globalmente
     ChangeNotifierProvider(
@@ -76,7 +83,7 @@ class DislexiaApp extends StatelessWidget {
 }
 
 /// Provider para gerenciar estado do usuário
-/// (simulação de autenticação sem backend)
+/// Agora usando Firebase Authentication
 class UserProvider extends ChangeNotifier {
   String? _userName;
   String? _userEmail;
@@ -87,34 +94,16 @@ class UserProvider extends ChangeNotifier {
   String? get userEmail => _userEmail;
   bool get isLoggedIn => _isLoggedIn;
 
-  /// Simula login do usuário
-  /// Em produção, aqui seria feita a chamada ao Firebase/API
-  bool login(String email, String password) {
-    // Validação simples para o MVP
-    if (email.isNotEmpty && password.length >= 6) {
-      _userEmail = email;
-      _userName = email.split('@')[0]; // Extrai nome do email
-      _isLoggedIn = true;
-      notifyListeners();
-      return true;
-    }
-    return false;
+  /// Atualiza estado do usuário com dados do Firebase
+  void updateUser(String email, String? displayName) {
+    _userEmail = email;
+    _userName = displayName ?? email.split('@')[0];
+    _isLoggedIn = true;
+    notifyListeners();
   }
 
-  /// Simula registro de novo usuário
-  bool register(String name, String email, String password) {
-    if (name.isNotEmpty && email.isNotEmpty && password.length >= 6) {
-      _userName = name;
-      _userEmail = email;
-      _isLoggedIn = true;
-      notifyListeners();
-      return true;
-    }
-    return false;
-  }
-
-  /// Faz logout do usuário
-  void logout() {
+  /// Limpa estado do usuário
+  void clearUser() {
     _userName = null;
     _userEmail = null;
     _isLoggedIn = false;

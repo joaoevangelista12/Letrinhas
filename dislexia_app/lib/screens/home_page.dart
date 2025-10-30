@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
+import '../services/auth_service.dart';
 
 /// Tela principal (Home)
 /// Exibe menu com atividades disponíveis e informações do usuário
@@ -249,10 +250,19 @@ class HomePage extends StatelessWidget {
             child: const Text('Cancelar'),
           ),
           TextButton(
-            onPressed: () {
-              userProvider.logout();
-              Navigator.of(context).pop(); // Fecha diálogo
-              Navigator.of(context).pushReplacementNamed('/login');
+            onPressed: () async {
+              // Faz logout no Firebase
+              final authService = AuthService();
+              await authService.signOut();
+
+              // Limpa estado do Provider
+              userProvider.clearUser();
+
+              // Fecha diálogo e volta para login
+              if (context.mounted) {
+                Navigator.of(context).pop(); // Fecha diálogo
+                Navigator.of(context).pushReplacementNamed('/login');
+              }
             },
             child: const Text(
               'Sair',

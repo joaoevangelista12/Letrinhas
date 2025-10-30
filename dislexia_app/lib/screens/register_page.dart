@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../widgets/custom_button.dart';
+import '../services/auth_service.dart';
 
 /// Tela de Cadastro
 /// Permite que novos usuários se registrem no app
@@ -86,7 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  /// Realiza o cadastro
+  /// Realiza o cadastro usando Firebase Authentication
   void _handleRegister() async {
     // Valida o formulário
     if (!_formKey.currentState!.validate()) {
@@ -95,42 +96,46 @@ class _RegisterPageState extends State<RegisterPage> {
 
     setState(() => _isLoading = true);
 
-    // Simula delay de requisição
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (!mounted) return;
-
-    // Tenta registrar usando o Provider
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final success = userProvider.register(
-      _nameController.text.trim(),
-      _emailController.text.trim(),
-      _passwordController.text,
+    // Tenta registrar usando Firebase
+    final authService = AuthService();
+    final result = await authService.registerWithEmail(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
     );
 
     setState(() => _isLoading = false);
 
-    if (success) {
-      // Cadastro bem-sucedido, navega para home
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cadastro realizado com sucesso!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
+    if (!mounted) return;
+
+    if (result.success && result.user != null) {
+      // Atualiza o Provider com dados do usuário
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      userProvider.updateUser(
+        result.user!.email!,
+        result.user!.displayName,
+      );
+
+      // Mostra mensagem de sucesso
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Navega para home
+      Navigator.of(context).pushReplacementNamed('/home');
     } else {
-      // Mostra erro
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erro ao realizar cadastro'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      // Mostra erro do Firebase
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
   }
 
