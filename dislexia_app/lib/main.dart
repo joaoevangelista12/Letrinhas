@@ -1,9 +1,9 @@
 // arquivo: lib/main.dart
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'screens/splash_page.dart';
 import 'screens/login_page.dart';
 import 'screens/register_page.dart';
@@ -15,31 +15,11 @@ void main() async {
   // Garante que os bindings do Flutter estão inicializados
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicializa o Firebase com suporte para Web
-  if (kIsWeb) {
-    // Configuração Firebase para Web
-    // IMPORTANTE: Substitua os valores abaixo com suas credenciais do Firebase Console
-    // Para obter estas credenciais:
-    // 1. Acesse Firebase Console (https://console.firebase.google.com)
-    // 2. Selecione seu projeto
-    // 3. Vá em Project Settings > General
-    // 4. Role até "Your apps" e clique no ícone Web (</>)
-    // 5. Copie os valores do firebaseConfig
-    await Firebase.initializeApp(
-      options: const FirebaseOptions(
-        apiKey: "YOUR_API_KEY_HERE",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID",
-        measurementId: "YOUR_MEASUREMENT_ID", // opcional
-      ),
-    );
-  } else {
-    // Para Android/iOS, usa o arquivo google-services.json / GoogleService-Info.plist
-    await Firebase.initializeApp();
-  }
+  // Inicializa o Firebase usando firebase_options.dart
+  // Detecta automaticamente a plataforma (Web, Android, iOS)
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   runApp(
     // Provider para gerenciar estado do usuário globalmente
