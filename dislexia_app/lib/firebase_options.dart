@@ -55,8 +55,8 @@ class DefaultFirebaseOptions {
   // ============================================================================
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAi-J-kfKAQT8WkHGRdTfLPELm0YhkDZY0', // ← Substitua pela sua API Key Web
-    appId: '1:648476093862:web:0123456789abcdef', // ← SUBSTITUA pelo seu Web App ID
+    apiKey: 'AIzaSyBA5mUVvmyACQWDVUiVd5s0qyy1b6DIg4A'
+    appId: '1:944349150169:android:19e6124742d5313bfef7c8',
     messagingSenderId: '648476093862',
     projectId: 'dislexia-app-1494e',
     authDomain: 'dislexia-app-1494e.firebaseapp.com',
