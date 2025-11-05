@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'providers/accessibility_provider.dart';
+import 'theme/app_theme.dart';
 import 'screens/splash_page.dart';
 import 'screens/login_page.dart';
 import 'screens/register_page.dart';
 import 'screens/home_page.dart';
 import 'screens/activity_match_words.dart';
+import 'screens/settings_page.dart';
 
 // Ponto de entrada da aplicação
 void main() async {
@@ -22,54 +25,56 @@ void main() async {
   );
 
   runApp(
-    // Provider para gerenciar estado do usuário globalmente
-    ChangeNotifierProvider(
-      create: (_) => UserProvider(),
+    // MultiProvider para gerenciar múltiplos estados globalmente
+    MultiProvider(
+      providers: [
+        // Provider do usuário
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        // Provider de acessibilidade
+        ChangeNotifierProvider(create: (_) => AccessibilityProvider()),
+      ],
       child: const DislexiaApp(),
     ),
   );
 }
 
 /// Classe principal do aplicativo
-class DislexiaApp extends StatelessWidget {
+class DislexiaApp extends StatefulWidget {
   const DislexiaApp({super.key});
 
   @override
+  State<DislexiaApp> createState() => _DislexiaAppState();
+}
+
+class _DislexiaAppState extends State<DislexiaApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Carrega configurações de acessibilidade salvas
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AccessibilityProvider>().loadSettings();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Observa mudanças nas configurações de acessibilidade
+    final accessibilityProvider = context.watch<AccessibilityProvider>();
+
     return MaterialApp(
-      title: 'Dislexia App - MVP',
+      title: 'Letrinhas',
       debugShowCheckedModeBanner: false,
 
-      // Tema com cores acessíveis e alto contraste
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        primaryColor: const Color(0xFF2196F3),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2196F3),
-          brightness: Brightness.light,
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF5F5F5),
-
-        // Tamanhos de fonte maiores para facilitar leitura
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-          displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-          bodyLarge: TextStyle(fontSize: 18),
-          bodyMedium: TextStyle(fontSize: 16),
-        ),
-
-        // Botões com cantos arredondados
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+      // Tema dinâmico baseado nas configurações de acessibilidade
+      theme: accessibilityProvider.highContrast
+          ? AppTheme.getHighContrastTheme(
+              useDyslexicFont: accessibilityProvider.useDyslexicFont,
+              fontSizeMultiplier: accessibilityProvider.fontSize,
+            )
+          : AppTheme.getColorfulTheme(
+              useDyslexicFont: accessibilityProvider.useDyslexicFont,
+              fontSizeMultiplier: accessibilityProvider.fontSize,
             ),
-          ),
-        ),
-
-        useMaterial3: true,
-      ),
 
       // Tela inicial do app
       initialRoute: '/',
@@ -81,6 +86,7 @@ class DislexiaApp extends StatelessWidget {
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const HomePage(),
         '/activity-match': (context) => const ActivityMatchWords(),
+        '/settings': (context) => const SettingsPage(),
       },
     );
   }

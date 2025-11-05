@@ -61,6 +61,14 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Letrinhas'),
         elevation: 0,
         actions: [
+          // Botão de configurações
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Configurações',
+            onPressed: () {
+              Navigator.of(context).pushNamed('/settings');
+            },
+          ),
           // Botão de logout
           IconButton(
             icon: const Icon(Icons.exit_to_app),

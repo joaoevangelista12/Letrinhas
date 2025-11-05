@@ -25,6 +25,12 @@ dependencies:
   firebase_auth: ^5.3.1
   cloud_firestore: ^5.4.4
 
+  # Persistência de configurações
+  shared_preferences: ^2.3.3
+
+  # Fontes do Google (fallback se OpenDyslexic não estiver disponível)
+  google_fonts: ^6.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -38,8 +44,10 @@ flutter:
     - assets/images/
     - assets/sounds/
 
-  # Fontes personalizadas (opcional - facilita leitura para disléxicos)
-  # fonts:
-  #   - family: OpenDyslexic
-  #     fonts:
-  #       - asset: assets/fonts/OpenDyslexic-Regular.ttf
+  # Fontes personalizadas - facilita leitura para disléxicos
+  fonts:
+    - family: OpenDyslexic
+      fonts:
+        - asset: assets/fonts/OpenDyslexic-Regular.ttf
+        - asset: assets/fonts/OpenDyslexic-Bold.ttf
+          weight: 700
