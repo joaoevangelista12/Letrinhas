@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../widgets/word_card.dart';
 import '../services/firestore_service.dart';
 import '../main.dart';
+import '../utils/tts_helper.dart';
 
 /// Atividade de Associação de Palavras com Imagens
 /// O usuário deve associar 3 palavras com suas respectivas imagens
@@ -69,17 +70,34 @@ class _ActivityMatchWordsState extends State<ActivityMatchWords> {
     }
   }
 
-  /// Configura o Text-to-Speech
+  /// Configura o Text-to-Speech em Português Brasileiro
   Future<void> _configureTts() async {
-    await _flutterTts.setLanguage('pt-BR');
-    await _flutterTts.setSpeechRate(0.5); // Velocidade mais lenta
-    await _flutterTts.setVolume(1.0);
-    await _flutterTts.setPitch(1.0);
+    // Usa o helper para configurar TTS com todas as tentativas possíveis
+    final success = await TtsHelper.configurePortugueseBrazilian(_flutterTts);
+
+    if (!success) {
+      debugPrint('⚠️ AVISO: TTS pode não estar em português brasileiro!');
+    }
+
+    // Lista todas as vozes disponíveis para debug
+    if (success) {
+      await TtsHelper.testSpeak(_flutterTts);
+    }
   }
 
-  /// Fala uma palavra usando TTS
+  /// Fala uma palavra ou frase usando TTS em Português Brasileiro
   Future<void> _speak(String text) async {
-    await _flutterTts.speak(text);
+    try {
+      // Força idioma português antes de falar (importante para Web)
+      await _flutterTts.setLanguage('pt-BR');
+
+      // Fala o texto
+      await _flutterTts.speak(text);
+
+      debugPrint('🔊 TTS falando: $text');
+    } catch (e) {
+      debugPrint('❌ Erro ao falar "$text": $e');
+    }
   }
 
   @override
