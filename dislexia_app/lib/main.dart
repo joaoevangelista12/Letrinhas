@@ -11,6 +11,10 @@ import 'screens/login_page.dart';
 import 'screens/register_page.dart';
 import 'screens/home_page.dart';
 import 'screens/activity_match_words.dart';
+import 'screens/activity_complete_word.dart';
+import 'screens/activity_order_syllables.dart';
+import 'screens/activity_read_sentences.dart';
+import 'screens/activity_audio_image.dart';
 import 'screens/settings_page.dart';
 
 // Ponto de entrada da aplicação
@@ -86,6 +90,10 @@ class _DislexiaAppState extends State<DislexiaApp> {
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const HomePage(),
         '/activity-match': (context) => const ActivityMatchWords(),
+        '/activity-complete-word': (context) => const ActivityCompleteWord(),
+        '/activity-order-syllables': (context) => const ActivityOrderSyllables(),
+        '/activity-read-sentences': (context) => const ActivityReadSentences(),
+        '/activity-audio-image': (context) => const ActivityAudioImage(),
         '/settings': (context) => const SettingsPage(),
       },
     );

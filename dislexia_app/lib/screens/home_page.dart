@@ -117,29 +117,54 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 16),
 
-              // Placeholder para futuras atividades
+              // Activity 2: Completar Palavras
               _buildActivityCard(
                 context,
-                icon: Icons.spellcheck,
-                title: 'Soletrar',
-                description: 'Em breve...',
+                icon: Icons.text_fields,
+                title: 'Completar Palavras',
+                description: 'Complete as palavras com letras faltando',
                 color: Colors.green,
-                isLocked: true,
                 onTap: () {
-                  _showComingSoonDialog(context);
+                  Navigator.of(context).pushNamed('/activity-complete-word');
                 },
               ),
               const SizedBox(height: 16),
 
+              // Activity 3: Ordenar Sílabas
               _buildActivityCard(
                 context,
-                icon: Icons.record_voice_over,
-                title: 'Leitura Guiada',
-                description: 'Em breve...',
+                icon: Icons.reorder,
+                title: 'Ordenar Sílabas',
+                description: 'Arraste as sílabas na ordem correta',
                 color: Colors.orange,
-                isLocked: true,
                 onTap: () {
-                  _showComingSoonDialog(context);
+                  Navigator.of(context).pushNamed('/activity-order-syllables');
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Activity 4: Leitura de Frases
+              _buildActivityCard(
+                context,
+                icon: Icons.menu_book,
+                title: 'Leitura de Frases',
+                description: 'Leia frases e responda perguntas',
+                color: Colors.purple,
+                onTap: () {
+                  Navigator.of(context).pushNamed('/activity-read-sentences');
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Activity 5: Áudio e Imagem
+              _buildActivityCard(
+                context,
+                icon: Icons.hearing,
+                title: 'Áudio e Imagem',
+                description: 'Ouça e escolha a imagem correta',
+                color: Colors.pink,
+                onTap: () {
+                  Navigator.of(context).pushNamed('/activity-audio-image');
                 },
               ),
             ],
