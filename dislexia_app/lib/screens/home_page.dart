@@ -61,6 +61,14 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Letrinhas'),
         elevation: 0,
         actions: [
+          // Botão de perfil
+          IconButton(
+            icon: const Icon(Icons.person),
+            tooltip: 'Meu Perfil',
+            onPressed: () {
+              Navigator.of(context).pushNamed('/profile');
+            },
+          ),
           // Botão de configurações
           IconButton(
             icon: const Icon(Icons.settings),

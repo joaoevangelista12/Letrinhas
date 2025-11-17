@@ -16,6 +16,7 @@ import 'screens/activity_order_syllables.dart';
 import 'screens/activity_read_sentences.dart';
 import 'screens/activity_audio_image.dart';
 import 'screens/settings_page.dart';
+import 'screens/profile_page.dart';
 
 // Ponto de entrada da aplicação
 void main() async {
@@ -95,6 +96,7 @@ class _DislexiaAppState extends State<DislexiaApp> {
         '/activity-read-sentences': (context) => const ActivityReadSentences(),
         '/activity-audio-image': (context) => const ActivityAudioImage(),
         '/settings': (context) => const SettingsPage(),
+        '/profile': (context) => const ProfilePage(),
       },
     );
   }
