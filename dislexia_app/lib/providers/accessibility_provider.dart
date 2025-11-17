@@ -1,5 +1,6 @@
 // arquivo: lib/providers/accessibility_provider.dart
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,6 +14,9 @@ class AccessibilityProvider extends ChangeNotifier {
   double _iconSize = 1.0; // Multiplicador (1.0, 1.2, 1.4)
   bool _enableAnimations = true;
   bool _enableSounds = true;
+
+  // Timer para debouncing de salvamentos (otimização de performance)
+  Timer? _debounceTimer;
 
   // Chaves para SharedPreferences
   static const String _keyHighContrast = 'high_contrast';
@@ -61,17 +65,29 @@ class AccessibilityProvider extends ChangeNotifier {
   }
 
   /// Define tamanho da fonte
+  /// Usa debouncing para evitar salvar a cada mudança do slider (otimização)
   Future<void> setFontSize(double size) async {
     _fontSize = size.clamp(0.8, 1.4);
-    notifyListeners();
-    await _saveSettings();
+    notifyListeners(); // UI atualiza imediatamente
+
+    // Cancela timer anterior e agenda novo salvamento após 500ms
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _saveSettings();
+    });
   }
 
   /// Define tamanho dos ícones
+  /// Usa debouncing para evitar salvar a cada mudança do slider (otimização)
   Future<void> setIconSize(double size) async {
     _iconSize = size.clamp(1.0, 1.4);
-    notifyListeners();
-    await _saveSettings();
+    notifyListeners(); // UI atualiza imediatamente
+
+    // Cancela timer anterior e agenda novo salvamento após 500ms
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _saveSettings();
+    });
   }
 
   /// Alterna animações
@@ -129,5 +145,12 @@ class AccessibilityProvider extends ChangeNotifier {
     if (_iconSize <= 1.1) return 'Normal';
     if (_iconSize <= 1.3) return 'Grande';
     return 'Muito Grande';
+  }
+
+  /// Limpa recursos ao destruir o provider (prevenção de memory leaks)
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
   }
 }

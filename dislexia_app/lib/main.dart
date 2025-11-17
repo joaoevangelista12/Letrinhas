@@ -18,7 +18,14 @@ import 'screens/activity_audio_image.dart';
 import 'screens/settings_page.dart';
 import 'screens/profile_page.dart';
 
-// Ponto de entrada da aplicação
+/// Ponto de entrada da aplicação Letrinhas.
+///
+/// Inicializa o Firebase e configura os providers globais:
+/// - [UserProvider]: Gerencia autenticação e progresso do usuário
+/// - [AccessibilityProvider]: Gerencia configurações de acessibilidade
+///
+/// O Firebase é configurado automaticamente para a plataforma atual
+/// (Web, Android ou iOS) usando [DefaultFirebaseOptions].
 void main() async {
   // Garante que os bindings do Flutter estão inicializados
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +50,19 @@ void main() async {
   );
 }
 
-/// Classe principal do aplicativo
+/// Widget raiz da aplicação Letrinhas.
+///
+/// Gerencia o MaterialApp e aplica o tema dinâmico baseado nas
+/// configurações de acessibilidade do usuário.
+///
+/// O app suporta dois temas:
+/// - **Tema colorido**: Padrão, com cores vibrantes para engajamento
+/// - **Tema alto contraste**: Preto e branco para melhor legibilidade
+///
+/// Ambos os temas respeitam:
+/// - Tamanho de fonte configurável (0.8x a 1.4x)
+/// - Fonte OpenDyslexic opcional
+/// - Tamanho de ícones ajustável
 class DislexiaApp extends StatefulWidget {
   const DislexiaApp({super.key});
 
@@ -102,8 +121,24 @@ class _DislexiaAppState extends State<DislexiaApp> {
   }
 }
 
-/// Provider para gerenciar estado do usuário
-/// Agora usando Firebase Authentication e Firestore
+/// Provider para gerenciar estado de autenticação e progresso do usuário.
+///
+/// Integra com Firebase Authentication e Firestore para sincronizar
+/// dados do usuário em tempo real.
+///
+/// **Sistema de Gamificação:**
+/// - Cada 100 pontos = 1 nível
+/// - [level]: Nível atual do usuário (calculado automaticamente)
+/// - [levelProgress]: Progresso no nível atual (0.0 a 1.0)
+/// - [totalPoints]: Total de pontos acumulados
+/// - [activitiesCompleted]: Número de atividades completadas
+///
+/// **Exemplo de uso:**
+/// ```dart
+/// final userProvider = context.read<UserProvider>();
+/// userProvider.updateProgress(totalPoints: 250, activitiesCompleted: 5);
+/// // Resultado: level = 3, levelProgress = 0.5 (50 de 100 pontos)
+/// ```
 class UserProvider extends ChangeNotifier {
   String? _uid;
   String? _userName;
@@ -114,17 +149,50 @@ class UserProvider extends ChangeNotifier {
   int _level = 1;
   double _levelProgress = 0.0;
 
-  // Getters
+  // Getters públicos para acesso aos dados do usuário
+
+  /// UID do usuário no Firebase Authentication
   String? get uid => _uid;
+
+  /// Nome de exibição do usuário (usa email se displayName não disponível)
   String? get userName => _userName;
+
+  /// Email do usuário
   String? get userEmail => _userEmail;
+
+  /// Indica se usuário está autenticado
   bool get isLoggedIn => _isLoggedIn;
+
+  /// Total de pontos acumulados pelo usuário
   int get totalPoints => _totalPoints;
+
+  /// Número total de atividades completadas
   int get activitiesCompleted => _activitiesCompleted;
+
+  /// Nível atual do usuário (1, 2, 3, etc.)
+  /// Calculado como: (totalPoints / 100) + 1
   int get level => _level;
+
+  /// Progresso no nível atual (0.0 a 1.0)
+  /// Calculado como: (totalPoints % 100) / 100
   double get levelProgress => _levelProgress;
 
-  /// Atualiza estado do usuário com dados do Firebase
+  /// Atualiza informações básicas do usuário após autenticação.
+  ///
+  /// Chamado após login ou registro bem-sucedido no Firebase Authentication.
+  ///
+  /// [uid]: UID único do usuário no Firebase
+  /// [email]: Email do usuário
+  /// [displayName]: Nome de exibição (opcional). Se null, usa parte do email antes do @
+  ///
+  /// **Exemplo:**
+  /// ```dart
+  /// userProvider.updateUser('abc123', 'joao@email.com', 'João Silva');
+  /// // userName será 'João Silva'
+  ///
+  /// userProvider.updateUser('abc123', 'maria@email.com', null);
+  /// // userName será 'maria' (extraído do email)
+  /// ```
   void updateUser(String uid, String email, String? displayName) {
     _uid = uid;
     _userEmail = email;
@@ -133,7 +201,28 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Atualiza progresso do usuário com dados do Firestore
+  /// Atualiza progresso e gamificação do usuário.
+  ///
+  /// Recalcula automaticamente [level] e [levelProgress] baseado nos pontos.
+  ///
+  /// [totalPoints]: Total de pontos acumulados
+  /// [activitiesCompleted]: Número de atividades completadas
+  ///
+  /// **Cálculos:**
+  /// - Nível = (totalPoints / 100) + 1
+  /// - Progresso = (totalPoints % 100) / 100
+  ///
+  /// **Exemplos:**
+  /// ```dart
+  /// updateProgress(totalPoints: 0, activitiesCompleted: 0)
+  /// // level = 1, levelProgress = 0.0
+  ///
+  /// updateProgress(totalPoints: 150, activitiesCompleted: 3)
+  /// // level = 2, levelProgress = 0.5 (50 de 100 pontos)
+  ///
+  /// updateProgress(totalPoints: 250, activitiesCompleted: 5)
+  /// // level = 3, levelProgress = 0.5 (50 de 100 pontos)
+  /// ```
   void updateProgress({
     required int totalPoints,
     required int activitiesCompleted,
@@ -145,7 +234,17 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Limpa estado do usuário
+  /// Limpa todos os dados do usuário (logout).
+  ///
+  /// Reseta todos os campos para seus valores padrão e notifica listeners.
+  /// Deve ser chamado quando o usuário faz logout.
+  ///
+  /// **Valores após clear:**
+  /// - uid, userName, userEmail: null
+  /// - isLoggedIn: false
+  /// - totalPoints, activitiesCompleted: 0
+  /// - level: 1
+  /// - levelProgress: 0.0
   void clearUser() {
     _uid = null;
     _userName = null;
