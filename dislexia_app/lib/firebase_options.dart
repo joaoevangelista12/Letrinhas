@@ -55,7 +55,7 @@ class DefaultFirebaseOptions {
   // ============================================================================
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBA5mUVvmyACQWDVUiVd5s0qyy1b6DIg4A'
+    apiKey: 'AIzaSyBA5mUVvmyACQWDVUiVd5s0qyy1b6DIg4A',
     appId: '1:944349150169:web:5bdcf0adcfca45b2fef7c8',
     messagingSenderId: '944349150169',
     projectId: 'dislexia-app-1494e',
