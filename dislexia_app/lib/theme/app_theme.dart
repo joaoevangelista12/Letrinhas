@@ -92,7 +92,7 @@ class AppTheme {
       ),
 
       // Cards com sombras suaves
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 3,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -206,7 +206,7 @@ class AppTheme {
       ),
 
       // Cards alto contraste
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
