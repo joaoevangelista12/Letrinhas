@@ -149,7 +149,7 @@ class FirestoreService {
       final newLevel = shouldLevelUp ? userData.level + 1 : userData.level;
 
       // 6. ATUALIZA DADOS DO USUÁRIO
-      final updateData = {
+      final Map<String, dynamic> updateData = {
         'totalPoints': FieldValue.increment(points),
         'activitiesCompleted': FieldValue.increment(1),
         'completedActivities': FieldValue.arrayUnion([activityId]),
