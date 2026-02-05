@@ -6,9 +6,11 @@ import '../main.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../models/user_model.dart';
+import '../models/activity_model.dart';
 
 /// Tela principal (Home)
 /// Exibe menu com atividades disponíveis e informações do usuário
+/// IMPLEMENTA SISTEMA DE NÍVEIS: Mostra atividades bloqueadas/desbloqueadas
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -19,6 +21,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final FirestoreService _firestoreService = FirestoreService();
   bool _isLoading = true;
+  UserModel? _userData;
 
   @override
   void initState() {
@@ -35,9 +38,14 @@ class _HomePageState extends State<HomePage> {
         final userData = await _firestoreService.getUser(userProvider.uid!);
 
         if (userData != null && mounted) {
+          setState(() {
+            _userData = userData;
+          });
+
           userProvider.updateProgress(
             totalPoints: userData.totalPoints,
             activitiesCompleted: userData.activitiesCompleted,
+            level: userData.level, // Atualiza nível no provider
           );
         }
       } catch (e) {
@@ -55,6 +63,7 @@ class _HomePageState extends State<HomePage> {
     // Obtém dados do usuário logado
     final userProvider = Provider.of<UserProvider>(context);
     final userName = userProvider.userName ?? 'Usuário';
+    final userLevel = _userData?.level ?? 1;
 
     return Scaffold(
       appBar: AppBar(
@@ -94,12 +103,12 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Cabeçalho com saudação
-              _buildHeader(userName),
+              _buildHeader(userName, userLevel),
               const SizedBox(height: 24),
 
               // Cards de Progresso
-              if (!_isLoading) ...[
-                _buildProgressCards(userProvider),
+              if (!_isLoading && _userData != null) ...[
+                _buildProgressCards(_userData!),
                 const SizedBox(height: 32),
               ],
 
@@ -110,71 +119,31 @@ class _HomePageState extends State<HomePage> {
                       fontSize: 24,
                     ),
               ),
-              const SizedBox(height: 16),
-
-              // Grade de cards de atividades
-              _buildActivityCard(
-                context,
-                icon: Icons.image_outlined,
-                title: 'Associar Palavras',
-                description: 'Combine palavras com imagens correspondentes',
-                color: Colors.blue,
-                onTap: () {
-                  Navigator.of(context).pushNamed('/activity-match');
-                },
+              const SizedBox(height: 8),
+              Text(
+                'Complete atividades para desbloquear novos níveis!',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600],
+                    ),
               ),
               const SizedBox(height: 16),
 
-              // Activity 2: Completar Palavras
-              _buildActivityCard(
-                context,
-                icon: Icons.text_fields,
-                title: 'Completar Palavras',
-                description: 'Complete as palavras com letras faltando',
-                color: Colors.green,
-                onTap: () {
-                  Navigator.of(context).pushNamed('/activity-complete-word');
-                },
-              ),
-              const SizedBox(height: 16),
+              // Lista dinâmica de atividades baseada no nível
+              ...Activities.all.map((activity) {
+                final isLocked = !activity.canAccess(userLevel);
+                final isCompleted = _userData?.completedActivities.contains(activity.id) ?? false;
 
-              // Activity 3: Ordenar Sílabas
-              _buildActivityCard(
-                context,
-                icon: Icons.reorder,
-                title: 'Ordenar Sílabas',
-                description: 'Arraste as sílabas na ordem correta',
-                color: Colors.orange,
-                onTap: () {
-                  Navigator.of(context).pushNamed('/activity-order-syllables');
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Activity 4: Leitura de Frases
-              _buildActivityCard(
-                context,
-                icon: Icons.menu_book,
-                title: 'Leitura de Frases',
-                description: 'Leia frases e responda perguntas',
-                color: Colors.purple,
-                onTap: () {
-                  Navigator.of(context).pushNamed('/activity-read-sentences');
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Activity 5: Áudio e Imagem
-              _buildActivityCard(
-                context,
-                icon: Icons.hearing,
-                title: 'Áudio e Imagem',
-                description: 'Ouça e escolha a imagem correta',
-                color: Colors.pink,
-                onTap: () {
-                  Navigator.of(context).pushNamed('/activity-audio-image');
-                },
-              ),
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _buildActivityCard(
+                    context,
+                    activity: activity,
+                    isLocked: isLocked,
+                    isCompleted: isCompleted,
+                    userLevel: userLevel,
+                  ),
+                );
+              }).toList(),
             ],
           ),
         ),
@@ -183,7 +152,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Constrói cards de progresso do usuário
-  Widget _buildProgressCards(UserProvider userProvider) {
+  Widget _buildProgressCards(UserModel userData) {
     return Column(
       children: [
         // Título da seção
@@ -204,24 +173,26 @@ class _HomePageState extends State<HomePage> {
         // Grade de cards
         Row(
           children: [
+            // Card de Nível (DESTAQUE)
+            Expanded(
+              flex: 2,
+              child: _buildStatCard(
+                icon: Icons.emoji_events,
+                label: 'Nível',
+                value: userData.level.toString(),
+                color: Colors.purple,
+                highlight: true,
+              ),
+            ),
+            const SizedBox(width: 12),
+
             // Card de Pontos
             Expanded(
               child: _buildStatCard(
                 icon: Icons.star,
                 label: 'Pontos',
-                value: userProvider.totalPoints.toString(),
+                value: userData.totalPoints.toString(),
                 color: Colors.amber,
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // Card de Nível
-            Expanded(
-              child: _buildStatCard(
-                icon: Icons.emoji_events,
-                label: 'Nível',
-                value: userProvider.level.toString(),
-                color: Colors.purple,
               ),
             ),
             const SizedBox(width: 12),
@@ -231,7 +202,7 @@ class _HomePageState extends State<HomePage> {
               child: _buildStatCard(
                 icon: Icons.check_circle,
                 label: 'Completas',
-                value: userProvider.activitiesCompleted.toString(),
+                value: userData.activitiesCompleted.toString(),
                 color: Colors.green,
               ),
             ),
@@ -239,92 +210,38 @@ class _HomePageState extends State<HomePage> {
         ),
         const SizedBox(height: 16),
 
-        // Barra de progresso de nível
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 5,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Progresso do Nível ${userProvider.level}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  Text(
-                    '${(userProvider.levelProgress * 100).toInt()}%',
-                    style: TextStyle(
-                      color: Colors.blue.shade700,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: LinearProgressIndicator(
-                  value: userProvider.levelProgress,
-                  backgroundColor: Colors.grey.shade200,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade600),
-                  minHeight: 10,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Faltam ${(100 - userProvider.levelProgress * 100).toInt()} pontos para o nível ${userProvider.level + 1}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ],
-          ),
-        ),
+        // Info sobre próximo nível
+        _buildNextLevelInfo(userData),
       ],
     );
   }
 
-  /// Constrói card de estatística individual
+  /// Card de estatística individual
   Widget _buildStatCard({
     required IconData icon,
     required String label,
     required String value,
     required Color color,
+    bool highlight = false,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(highlight ? 20 : 16),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1.5,
+          color: color.withOpacity(highlight ? 0.5 : 0.3),
+          width: highlight ? 2.5 : 1.5,
         ),
       ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 28),
+          Icon(icon, color: color, size: highlight ? 32 : 28),
           const SizedBox(height: 8),
           Text(
             value,
             style: TextStyle(
-              fontSize: 24,
+              fontSize: highlight ? 28 : 24,
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -336,6 +253,93 @@ class _HomePageState extends State<HomePage> {
               fontSize: 12,
               color: Colors.grey.shade700,
             ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Info sobre próximo nível
+  Widget _buildNextLevelInfo(UserModel userData) {
+    final nextLevel = Activities.getNextRequiredLevel(userData.level);
+
+    if (nextLevel == null) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.green.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.green.shade300, width: 2),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green.shade700, size: 32),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Parabéns! 🎉',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green.shade900,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Você completou todas as atividades disponíveis!',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.green.shade800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final lockedActivities = Activities.getLockedActivities(userData.level);
+    final nextActivity = lockedActivities.first;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade300, width: 2),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.lock_outline, color: Colors.blue.shade700, size: 32),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Próximo Desafio',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Chegue ao nível $nextLevel para desbloquear:\n${nextActivity.name}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.blue.shade800,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -343,7 +347,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Constrói o cabeçalho com saudação ao usuário
-  Widget _buildHeader(String userName) {
+  Widget _buildHeader(String userName, int userLevel) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -363,19 +367,43 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Row(
         children: [
-          // Avatar
-          Container(
-            width: 60,
-            height: 60,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.person,
-              size: 32,
-              color: Color(0xFF2196F3),
-            ),
+          // Avatar com badge de nível
+          Stack(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.person,
+                  size: 32,
+                  color: Color(0xFF2196F3),
+                ),
+              ),
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.purple,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: Text(
+                    '$userLevel',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(width: 16),
 
@@ -401,6 +429,15 @@ class _HomePageState extends State<HomePage> {
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  'Nível $userLevel',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
@@ -409,77 +446,244 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// Constrói um card de atividade
+  /// Constrói um card de atividade com sistema de bloqueio
   Widget _buildActivityCard(
     BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String description,
-    required Color color,
-    required VoidCallback onTap,
-    bool isLocked = false,
+    required ActivityModel activity,
+    required bool isLocked,
+    required bool isCompleted,
+    required int userLevel,
   }) {
+    // Define ícones e cores baseado no tipo de atividade
+    final IconData icon;
+    final Color color;
+
+    switch (activity.id) {
+      case Activities.matchWordsId:
+        icon = Icons.image_outlined;
+        color = Colors.blue;
+        break;
+      case Activities.completeWordId:
+        icon = Icons.text_fields;
+        color = Colors.green;
+        break;
+      case Activities.orderSyllablesId:
+        icon = Icons.reorder;
+        color = Colors.orange;
+        break;
+      default:
+        icon = Icons.assignment;
+        color = Colors.grey;
+    }
+
     return Card(
-      elevation: 4,
+      elevation: isLocked ? 1 : 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
+        side: isCompleted
+            ? BorderSide(color: Colors.green.shade300, width: 2)
+            : BorderSide.none,
       ),
       child: InkWell(
-        onTap: onTap,
+        onTap: isLocked
+            ? () => _showLockedDialog(context, activity)
+            : () => Navigator.of(context).pushNamed(activity.route),
         borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              // Ícone da atividade
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  isLocked ? Icons.lock_outline : icon,
-                  size: 32,
-                  color: color,
-                ),
-              ),
-              const SizedBox(width: 16),
-
-              // Título e descrição
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: Opacity(
+          opacity: isLocked ? 0.6 : 1.0,
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                // Ícone da atividade com badge de status
+                Stack(
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        isLocked ? Icons.lock_outline : icon,
+                        size: 32,
+                        color: isLocked ? Colors.grey : color,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
+                    if (isCompleted)
+                      Positioned(
+                        right: -4,
+                        top: -4,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            size: 12,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                    ),
                   ],
                 ),
-              ),
+                const SizedBox(width: 16),
 
-              // Seta indicadora
-              Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.grey[400],
-                size: 20,
-              ),
-            ],
+                // Título e descrição
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              activity.name,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: isLocked ? Colors.grey : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          if (isLocked)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.shade100,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'Nível ${activity.requiredLevel}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange.shade900,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isLocked
+                            ? 'Complete atividades anteriores para desbloquear'
+                            : activity.description,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      if (!isLocked && !isCompleted)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Row(
+                            children: [
+                              Icon(Icons.star, size: 16, color: Colors.amber),
+                              const SizedBox(width: 4),
+                              Text(
+                                '+${activity.points} pontos',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.amber.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (isCompleted)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            '✓ Completada',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green.shade700,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                // Seta indicadora
+                Icon(
+                  isLocked ? Icons.lock : Icons.arrow_forward_ios,
+                  color: Colors.grey[400],
+                  size: 20,
+                ),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Mostra diálogo informando que a atividade está bloqueada
+  void _showLockedDialog(BuildContext context, ActivityModel activity) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.lock, color: Colors.orange.shade700),
+            const SizedBox(width: 8),
+            const Text('Atividade Bloqueada'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Você precisa estar no nível ${activity.requiredLevel} para acessar esta atividade.',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '💡 Dica:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade900,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Complete as atividades anteriores para subir de nível e desbloquear novas atividades!',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Entendi'),
+          ),
+        ],
       ),
     );
   }
@@ -515,23 +719,6 @@ class _HomePageState extends State<HomePage> {
               'Sair',
               style: TextStyle(color: Colors.red),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Mostra diálogo "Em breve"
-  void _showComingSoonDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Em breve'),
-        content: const Text('Esta atividade estará disponível em breve!'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
           ),
         ],
       ),

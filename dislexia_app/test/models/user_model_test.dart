@@ -20,67 +20,47 @@ void main() {
       expect(user.totalPoints, 0);
       expect(user.activitiesCompleted, 0);
       expect(user.completedActivities, isEmpty);
+      expect(user.level, 1); // Nível padrão
     });
 
-    test('deve calcular nível corretamente', () {
+    test('deve usar nível explícito fornecido', () {
       final user = UserModel(
         uid: 'test123',
         name: 'João',
         email: 'joao@test.com',
         totalPoints: 250,
+        level: 3,
         createdAt: DateTime.now(),
       );
 
-      // 250 / 100 = 2, +1 = 3
+      // Nível explícito = 3 (não calculado de pontos)
       expect(user.level, 3);
+      expect(user.totalPoints, 250);
     });
 
-    test('deve calcular progresso de nível corretamente', () {
-      final user = UserModel(
-        uid: 'test123',
-        name: 'João',
-        email: 'joao@test.com',
-        totalPoints: 150,
-        createdAt: DateTime.now(),
-      );
-
-      // 150 % 100 = 50, 50/100 = 0.5
-      expect(user.levelProgress, 0.5);
-    });
-
-    test('deve calcular pontos para próximo nível', () {
-      final user = UserModel(
-        uid: 'test123',
-        name: 'João',
-        email: 'joao@test.com',
-        totalPoints: 75,
-        createdAt: DateTime.now(),
-      );
-
-      // 100 - 75 = 25
-      expect(user.pointsToNextLevel, 25);
-    });
-
-    test('deve criar cópia com valores atualizados', () {
+    test('deve criar cópia com valores atualizados incluindo nível', () {
       final user = UserModel(
         uid: 'test123',
         name: 'João',
         email: 'joao@test.com',
         totalPoints: 100,
+        level: 1,
         createdAt: DateTime.now(),
       );
 
       final updatedUser = user.copyWith(
         totalPoints: 200,
         activitiesCompleted: 5,
+        level: 2,
       );
 
       expect(updatedUser.uid, 'test123');
       expect(updatedUser.totalPoints, 200);
       expect(updatedUser.activitiesCompleted, 5);
+      expect(updatedUser.level, 2);
     });
 
-    test('nível 1 com 0 pontos', () {
+    test('usuário novo deve começar no nível 1', () {
       final user = UserModel(
         uid: 'test123',
         name: 'João',
@@ -90,36 +70,35 @@ void main() {
       );
 
       expect(user.level, 1);
-      expect(user.levelProgress, 0.0);
-      expect(user.pointsToNextLevel, 100);
+      expect(user.totalPoints, 0);
     });
 
-    test('nível 2 com 100 pontos', () {
+    test('nível não depende de pontos (é explícito)', () {
+      // Mesmo com muitos pontos, o nível é o que foi definido
       final user = UserModel(
         uid: 'test123',
         name: 'João',
         email: 'joao@test.com',
-        totalPoints: 100,
+        totalPoints: 500,
+        level: 1, // Ainda nível 1, mesmo com 500 pontos
         createdAt: DateTime.now(),
       );
 
-      expect(user.level, 2);
-      expect(user.levelProgress, 0.0);
-      expect(user.pointsToNextLevel, 100);
+      expect(user.level, 1);
+      expect(user.totalPoints, 500);
     });
 
-    test('nível 5 com 450 pontos', () {
+    test('deve suportar níveis altos', () {
       final user = UserModel(
         uid: 'test123',
         name: 'João',
         email: 'joao@test.com',
-        totalPoints: 450,
+        totalPoints: 1000,
+        level: 10,
         createdAt: DateTime.now(),
       );
 
-      expect(user.level, 5);
-      expect(user.levelProgress, 0.5);
-      expect(user.pointsToNextLevel, 50);
+      expect(user.level, 10);
     });
   });
 

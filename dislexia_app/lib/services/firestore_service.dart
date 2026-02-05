@@ -2,9 +2,11 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
+import '../models/activity_model.dart';
 
 /// Serviço para gerenciar operações do Firestore
 /// Centraliza todas as operações de banco de dados
+/// IMPORTANTE: Implementa validação de níveis para acesso às atividades
 class FirestoreService {
   // Instância do Firestore
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -31,11 +33,12 @@ class FirestoreService {
           'lastLoginAt': FieldValue.serverTimestamp(),
         });
       } else {
-        // Cria novo documento
+        // Cria novo documento com nível inicial 1
         final user = UserModel(
           uid: uid,
           name: name,
           email: email,
+          level: 1, // TODO USUÁRIO NOVO INICIA NO NÍVEL 1
           createdAt: DateTime.now(),
           lastLoginAt: DateTime.now(),
         );
@@ -87,6 +90,8 @@ class FirestoreService {
   }
 
   /// Registra conclusão de atividade e adiciona pontos
+  /// VALIDA SE O USUÁRIO TEM NÍVEL SUFICIENTE PARA ACESSAR A ATIVIDADE
+  /// Implementa progressão de nível ao completar atividades
   Future<void> completeActivity({
     required String uid,
     required String activityId,
@@ -96,9 +101,34 @@ class FirestoreService {
     double accuracy = 1.0,
   }) async {
     try {
+      // 1. BUSCA DADOS DO USUÁRIO
+      final userData = await getUser(uid);
+      if (userData == null) {
+        throw Exception('Usuário não encontrado');
+      }
+
+      // 2. VALIDA SE O USUÁRIO PODE ACESSAR ESTA ATIVIDADE
+      final activity = Activities.getById(activityId);
+      if (activity == null) {
+        throw Exception('Atividade inválida: $activityId');
+      }
+
+      if (!activity.canAccess(userData.level)) {
+        throw Exception(
+          'Acesso negado: Você precisa estar no nível ${activity.requiredLevel} '
+          'para acessar esta atividade. Seu nível atual: ${userData.level}',
+        );
+      }
+
+      // 3. VERIFICA SE A ATIVIDADE JÁ FOI COMPLETADA
+      final alreadyCompleted = await hasCompletedActivity(uid, activityId);
+      if (alreadyCompleted) {
+        throw Exception('Atividade já foi completada anteriormente');
+      }
+
       final userRef = _firestore.collection(usersCollection).doc(uid);
 
-      // Cria documento de progresso da atividade
+      // 4. SALVA PROGRESSO DA ATIVIDADE
       final activityProgress = ActivityProgress(
         activityId: activityId,
         activityName: activityName,
@@ -108,18 +138,29 @@ class FirestoreService {
         accuracy: accuracy,
       );
 
-      // Salva na subcoleção de atividades do usuário
       await userRef
           .collection(activitiesCollection)
           .doc(activityId)
           .set(activityProgress.toFirestore());
 
-      // Atualiza totais do usuário
-      await userRef.update({
+      // 5. DETERMINA SE O USUÁRIO DEVE SUBIR DE NÍVEL
+      // Usuário sobe de nível ao completar a atividade do seu nível atual
+      final shouldLevelUp = activity.requiredLevel == userData.level;
+      final newLevel = shouldLevelUp ? userData.level + 1 : userData.level;
+
+      // 6. ATUALIZA DADOS DO USUÁRIO
+      final updateData = {
         'totalPoints': FieldValue.increment(points),
         'activitiesCompleted': FieldValue.increment(1),
         'completedActivities': FieldValue.arrayUnion([activityId]),
-      });
+      };
+
+      // Adiciona level ao update se deve subir de nível
+      if (shouldLevelUp) {
+        updateData['level'] = newLevel;
+      }
+
+      await userRef.update(updateData);
     } catch (e) {
       throw Exception('Erro ao registrar atividade: $e');
     }
@@ -181,6 +222,7 @@ class FirestoreService {
         'totalPoints': 0,
         'activitiesCompleted': 0,
         'completedActivities': [],
+        'level': 1, // Reseta para nível 1
       });
 
       // Deleta todas as atividades

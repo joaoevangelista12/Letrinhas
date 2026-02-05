@@ -11,6 +11,7 @@ class UserModel {
   final int totalPoints;
   final int activitiesCompleted;
   final List<String> completedActivities;
+  final int level; // Nível explícito do usuário (1, 2, 3...)
   final DateTime createdAt;
   final DateTime? lastLoginAt;
 
@@ -21,6 +22,7 @@ class UserModel {
     this.totalPoints = 0,
     this.activitiesCompleted = 0,
     this.completedActivities = const [],
+    this.level = 1, // Todo usuário novo inicia no nível 1
     required this.createdAt,
     this.lastLoginAt,
   });
@@ -35,6 +37,7 @@ class UserModel {
       totalPoints: data['totalPoints'] ?? 0,
       activitiesCompleted: data['activitiesCompleted'] ?? 0,
       completedActivities: List<String>.from(data['completedActivities'] ?? []),
+      level: data['level'] ?? 1, // Garante nível 1 se não existir
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       lastLoginAt: (data['lastLoginAt'] as Timestamp?)?.toDate(),
     );
@@ -48,6 +51,7 @@ class UserModel {
       'totalPoints': totalPoints,
       'activitiesCompleted': activitiesCompleted,
       'completedActivities': completedActivities,
+      'level': level, // Salva nível explicitamente
       'createdAt': Timestamp.fromDate(createdAt),
       'lastLoginAt': lastLoginAt != null ? Timestamp.fromDate(lastLoginAt!) : null,
     };
@@ -61,6 +65,7 @@ class UserModel {
     int? totalPoints,
     int? activitiesCompleted,
     List<String>? completedActivities,
+    int? level,
     DateTime? createdAt,
     DateTime? lastLoginAt,
   }) {
@@ -71,15 +76,10 @@ class UserModel {
       totalPoints: totalPoints ?? this.totalPoints,
       activitiesCompleted: activitiesCompleted ?? this.activitiesCompleted,
       completedActivities: completedActivities ?? this.completedActivities,
+      level: level ?? this.level,
       createdAt: createdAt ?? this.createdAt,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
     );
-  }
-
-  /// Retorna nível do usuário baseado nos pontos
-  int get level {
-    // A cada 100 pontos = 1 nível
-    return (totalPoints / 100).floor() + 1;
   }
 
   /// Retorna progresso atual do nível (0-100%)

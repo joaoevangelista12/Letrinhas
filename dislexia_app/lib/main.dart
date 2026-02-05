@@ -17,6 +17,8 @@ import 'screens/activity_read_sentences.dart';
 import 'screens/activity_audio_image.dart';
 import 'screens/settings_page.dart';
 import 'screens/profile_page.dart';
+import 'models/activity_model.dart';
+import 'widgets/protected_activity.dart';
 
 /// Ponto de entrada da aplicação Letrinhas.
 ///
@@ -109,11 +111,25 @@ class _DislexiaAppState extends State<DislexiaApp> {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const HomePage(),
-        '/activity-match': (context) => const ActivityMatchWords(),
-        '/activity-complete-word': (context) => const ActivityCompleteWord(),
-        '/activity-order-syllables': (context) => const ActivityOrderSyllables(),
+
+        // Atividades protegidas por nível (sistema de progressão)
+        '/activity-match': (context) => const ProtectedActivity(
+              activityId: Activities.matchWordsId,
+              child: ActivityMatchWords(),
+            ),
+        '/activity-complete-word': (context) => const ProtectedActivity(
+              activityId: Activities.completeWordId,
+              child: ActivityCompleteWord(),
+            ),
+        '/activity-order-syllables': (context) => const ProtectedActivity(
+              activityId: Activities.orderSyllablesId,
+              child: ActivityOrderSyllables(),
+            ),
+
+        // Atividades sem proteção de nível (disponíveis para todos)
         '/activity-read-sentences': (context) => const ActivityReadSentences(),
         '/activity-audio-image': (context) => const ActivityAudioImage(),
+
         '/settings': (context) => const SettingsPage(),
         '/profile': (context) => const ProfilePage(),
       },
@@ -126,18 +142,25 @@ class _DislexiaAppState extends State<DislexiaApp> {
 /// Integra com Firebase Authentication e Firestore para sincronizar
 /// dados do usuário em tempo real.
 ///
-/// **Sistema de Gamificação:**
-/// - Cada 100 pontos = 1 nível
-/// - [level]: Nível atual do usuário (calculado automaticamente)
+/// **Sistema de Gamificação e Progressão:**
+/// - [level]: Nível explícito do usuário (gerenciado pelo backend)
 /// - [levelProgress]: Progresso no nível atual (0.0 a 1.0)
 /// - [totalPoints]: Total de pontos acumulados
 /// - [activitiesCompleted]: Número de atividades completadas
 ///
+/// **Sistema de Níveis:**
+/// - Usuário começa no nível 1 ao criar conta
+/// - Sobe de nível ao completar atividades específicas
+/// - Cada nível desbloqueia novas atividades
+///
 /// **Exemplo de uso:**
 /// ```dart
 /// final userProvider = context.read<UserProvider>();
-/// userProvider.updateProgress(totalPoints: 250, activitiesCompleted: 5);
-/// // Resultado: level = 3, levelProgress = 0.5 (50 de 100 pontos)
+/// userProvider.updateProgress(
+///   totalPoints: 150,
+///   activitiesCompleted: 3,
+///   level: 2,
+/// );
 /// ```
 class UserProvider extends ChangeNotifier {
   String? _uid;
@@ -170,7 +193,7 @@ class UserProvider extends ChangeNotifier {
   int get activitiesCompleted => _activitiesCompleted;
 
   /// Nível atual do usuário (1, 2, 3, etc.)
-  /// Calculado como: (totalPoints / 100) + 1
+  /// Gerenciado explicitamente pelo backend ao completar atividades
   int get level => _level;
 
   /// Progresso no nível atual (0.0 a 1.0)
@@ -203,33 +226,41 @@ class UserProvider extends ChangeNotifier {
 
   /// Atualiza progresso e gamificação do usuário.
   ///
-  /// Recalcula automaticamente [level] e [levelProgress] baseado nos pontos.
+  /// Sincroniza os dados do usuário com os valores do Firestore.
   ///
   /// [totalPoints]: Total de pontos acumulados
   /// [activitiesCompleted]: Número de atividades completadas
+  /// [level]: Nível atual do usuário (gerenciado pelo backend)
   ///
-  /// **Cálculos:**
-  /// - Nível = (totalPoints / 100) + 1
-  /// - Progresso = (totalPoints % 100) / 100
+  /// **Sistema de Progressão:**
+  /// - O nível é gerenciado explicitamente pelo backend
+  /// - Usuário sobe de nível ao completar atividades específicas
+  /// - Progresso visual calculado como: (totalPoints % 100) / 100
   ///
   /// **Exemplos:**
   /// ```dart
-  /// updateProgress(totalPoints: 0, activitiesCompleted: 0)
-  /// // level = 1, levelProgress = 0.0
+  /// // Usuário nível 1 com 50 pontos
+  /// updateProgress(totalPoints: 50, activitiesCompleted: 1, level: 1)
+  /// // level = 1, levelProgress = 0.5
   ///
-  /// updateProgress(totalPoints: 150, activitiesCompleted: 3)
-  /// // level = 2, levelProgress = 0.5 (50 de 100 pontos)
-  ///
-  /// updateProgress(totalPoints: 250, activitiesCompleted: 5)
-  /// // level = 3, levelProgress = 0.5 (50 de 100 pontos)
+  /// // Usuário nível 2 com 150 pontos
+  /// updateProgress(totalPoints: 150, activitiesCompleted: 3, level: 2)
+  /// // level = 2, levelProgress = 0.5
   /// ```
   void updateProgress({
     required int totalPoints,
     required int activitiesCompleted,
+    int? level,
   }) {
     _totalPoints = totalPoints;
     _activitiesCompleted = activitiesCompleted;
-    _level = (totalPoints / 100).floor() + 1;
+
+    // Usa o nível explícito do backend se fornecido
+    if (level != null) {
+      _level = level;
+    }
+
+    // Calcula progresso visual baseado em pontos
     _levelProgress = (totalPoints % 100) / 100;
     notifyListeners();
   }
