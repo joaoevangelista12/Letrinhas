@@ -7,6 +7,7 @@ import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../models/user_model.dart';
 import '../models/activity_model.dart';
+import '../widgets/level_progress_bar.dart';
 
 /// Tela principal (Home)
 /// Exibe menu com atividades disponíveis e informações do usuário
@@ -46,6 +47,7 @@ class _HomePageState extends State<HomePage> {
             totalPoints: userData.totalPoints,
             activitiesCompleted: userData.activitiesCompleted,
             level: userData.level, // Atualiza nível no provider
+            progress: userData.progress, // Atualiza progresso no provider
           );
         }
       } catch (e) {
@@ -207,6 +209,13 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 24),
+
+        // Barra de progresso visual animada
+        LevelProgressBar(
+          level: userData.level,
+          progress: userData.progress,
         ),
         const SizedBox(height: 16),
 

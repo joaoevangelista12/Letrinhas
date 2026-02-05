@@ -143,20 +143,28 @@ class FirestoreService {
           .doc(activityId)
           .set(activityProgress.toFirestore());
 
-      // 5. DETERMINA SE O USUÁRIO DEVE SUBIR DE NÍVEL
-      // Usuário sobe de nível ao completar a atividade do seu nível atual
-      final shouldLevelUp = activity.requiredLevel == userData.level;
-      final newLevel = shouldLevelUp ? userData.level + 1 : userData.level;
+      // 5. CALCULA PROGRESSO E LEVEL-UP
+      // Cada atividade concluída dá 50 pontos de progresso
+      const int progressPerActivity = 50;
+      int newProgress = userData.progress + progressPerActivity;
+      int newLevel = userData.level;
+
+      // Se atingir 100 ou mais, sobe de nível e reseta progresso
+      while (newProgress >= 100) {
+        newLevel++;
+        newProgress -= 100;
+      }
 
       // 6. ATUALIZA DADOS DO USUÁRIO
       final Map<String, dynamic> updateData = {
         'totalPoints': FieldValue.increment(points),
         'activitiesCompleted': FieldValue.increment(1),
         'completedActivities': FieldValue.arrayUnion([activityId]),
+        'progress': newProgress, // Atualiza progresso (0-100)
       };
 
-      // Adiciona level ao update se deve subir de nível
-      if (shouldLevelUp) {
+      // Adiciona level ao update se subiu de nível
+      if (newLevel > userData.level) {
         updateData['level'] = newLevel;
       }
 
@@ -223,6 +231,7 @@ class FirestoreService {
         'activitiesCompleted': 0,
         'completedActivities': [],
         'level': 1, // Reseta para nível 1
+        'progress': 0, // Reseta progresso para 0
       });
 
       // Deleta todas as atividades

@@ -12,6 +12,7 @@ class UserModel {
   final int activitiesCompleted;
   final List<String> completedActivities;
   final int level; // Nível explícito do usuário (1, 2, 3...)
+  final int progress; // Progresso dentro do nível (0-100)
   final DateTime createdAt;
   final DateTime? lastLoginAt;
 
@@ -23,6 +24,7 @@ class UserModel {
     this.activitiesCompleted = 0,
     this.completedActivities = const [],
     this.level = 1, // Todo usuário novo inicia no nível 1
+    this.progress = 0, // Todo usuário novo inicia com 0 de progresso
     required this.createdAt,
     this.lastLoginAt,
   });
@@ -38,6 +40,7 @@ class UserModel {
       activitiesCompleted: data['activitiesCompleted'] ?? 0,
       completedActivities: List<String>.from(data['completedActivities'] ?? []),
       level: data['level'] ?? 1, // Garante nível 1 se não existir
+      progress: data['progress'] ?? 0, // Garante progresso 0 se não existir
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       lastLoginAt: (data['lastLoginAt'] as Timestamp?)?.toDate(),
     );
@@ -52,6 +55,7 @@ class UserModel {
       'activitiesCompleted': activitiesCompleted,
       'completedActivities': completedActivities,
       'level': level, // Salva nível explicitamente
+      'progress': progress, // Salva progresso explicitamente (0-100)
       'createdAt': Timestamp.fromDate(createdAt),
       'lastLoginAt': lastLoginAt != null ? Timestamp.fromDate(lastLoginAt!) : null,
     };
@@ -66,6 +70,7 @@ class UserModel {
     int? activitiesCompleted,
     List<String>? completedActivities,
     int? level,
+    int? progress,
     DateTime? createdAt,
     DateTime? lastLoginAt,
   }) {
@@ -77,20 +82,20 @@ class UserModel {
       activitiesCompleted: activitiesCompleted ?? this.activitiesCompleted,
       completedActivities: completedActivities ?? this.completedActivities,
       level: level ?? this.level,
+      progress: progress ?? this.progress,
       createdAt: createdAt ?? this.createdAt,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
     );
   }
 
-  /// Retorna progresso atual do nível (0-100%)
+  /// Retorna progresso atual do nível como porcentagem (0.0 a 1.0)
   double get levelProgress {
-    final pointsInCurrentLevel = totalPoints % 100;
-    return pointsInCurrentLevel / 100;
+    return progress / 100.0;
   }
 
-  /// Retorna pontos necessários para próximo nível
-  int get pointsToNextLevel {
-    return 100 - (totalPoints % 100);
+  /// Retorna pontos de progresso necessários para próximo nível
+  int get progressToNextLevel {
+    return 100 - progress;
   }
 }
 
