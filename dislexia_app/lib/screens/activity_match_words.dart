@@ -231,7 +231,7 @@ class _ActivityMatchWordsState extends State<ActivityMatchWords> {
         // Salva no Firestore
         await firestoreService.completeActivity(
           uid: userProvider.uid!,
-          activityId: 'match_words_basic',
+          activityId: 'match-words',
           activityName: 'Associar Palavras',
           points: pointsPerActivity,
           attempts: 1,
