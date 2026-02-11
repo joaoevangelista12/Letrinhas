@@ -123,7 +123,7 @@ class FirestoreService {
       // 3. VERIFICA SE A ATIVIDADE JÁ FOI COMPLETADA
       final alreadyCompleted = await hasCompletedActivity(uid, activityId);
       if (alreadyCompleted) {
-        throw Exception('Atividade já foi completada anteriormente');
+        return;
       }
 
       final userRef = _firestore.collection(usersCollection).doc(uid);
