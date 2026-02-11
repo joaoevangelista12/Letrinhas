@@ -177,6 +177,8 @@ class _ActivityReadSentencesState extends State<ActivityReadSentences> {
           userProvider.updateProgress(
             totalPoints: userData.totalPoints,
             activitiesCompleted: userData.activitiesCompleted,
+            level: userData.level,
+            progress: userData.progress,
           );
         }
 

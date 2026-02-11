@@ -176,6 +176,8 @@ class _ActivityAudioImageState extends State<ActivityAudioImage> {
           userProvider.updateProgress(
             totalPoints: userData.totalPoints,
             activitiesCompleted: userData.activitiesCompleted,
+            level: userData.level,
+            progress: userData.progress,
           );
         }
 

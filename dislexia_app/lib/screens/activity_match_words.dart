@@ -225,24 +225,26 @@ class _ActivityMatchWordsState extends State<ActivityMatchWords> {
       if (userProvider.uid != null) {
         final firestoreService = FirestoreService();
 
-        // Calcula pontos baseado na performance
-        const int pointsPerActivity = 50;
-
         // Salva no Firestore
         await firestoreService.completeActivity(
           uid: userProvider.uid!,
           activityId: 'match-words',
           activityName: 'Associar Palavras',
-          points: pointsPerActivity,
+          points: 50,
           attempts: 1,
-          accuracy: 1.0, // 100% de acerto
+          accuracy: 1.0,
         );
 
-        // Atualiza provider localmente
-        userProvider.updateProgress(
-          totalPoints: userProvider.totalPoints + pointsPerActivity,
-          activitiesCompleted: userProvider.activitiesCompleted + 1,
-        );
+        // Re-lê do Firestore para garantir valores corretos
+        final userData = await firestoreService.getUser(userProvider.uid!);
+        if (userData != null && mounted) {
+          userProvider.updateProgress(
+            totalPoints: userData.totalPoints,
+            activitiesCompleted: userData.activitiesCompleted,
+            level: userData.level,
+            progress: userData.progress,
+          );
+        }
       }
     } catch (e) {
       debugPrint('Erro ao salvar progresso: $e');
