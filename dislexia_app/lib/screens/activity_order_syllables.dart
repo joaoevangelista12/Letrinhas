@@ -181,7 +181,7 @@ class _ActivityOrderSyllablesState extends State<ActivityOrderSyllables> {
           uid: userProvider.uid!,
           activityId: 'order-syllables',
           activityName: 'Ordenar Sílabas',
-          points: 50,
+          points: 100,
           attempts: _totalAttempts,
           accuracy: _correctCount / _words.length,
         );
@@ -196,7 +196,7 @@ class _ActivityOrderSyllablesState extends State<ActivityOrderSyllables> {
           );
         }
 
-        debugPrint('✅ Progresso salvo: +50 pontos');
+        debugPrint('✅ Progresso salvo: +100 pontos');
       } catch (e) {
         debugPrint('❌ Erro ao salvar: $e');
         if (mounted) {
@@ -250,7 +250,7 @@ class _ActivityOrderSyllablesState extends State<ActivityOrderSyllables> {
                   Icon(Icons.star, color: Colors.amber.shade700, size: 28),
                   const SizedBox(width: 8),
                   const Text(
-                    '+50 pontos',
+                    '+100 pontos',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

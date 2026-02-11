@@ -90,8 +90,8 @@ class FirestoreService {
   }
 
   /// Registra conclusão de atividade e adiciona pontos
+  /// Permite repetição infinita: toda conclusão soma pontos e progresso
   /// VALIDA SE O USUÁRIO TEM NÍVEL SUFICIENTE PARA ACESSAR A ATIVIDADE
-  /// Implementa progressão de nível ao completar atividades
   Future<void> completeActivity({
     required String uid,
     required String activityId,
@@ -120,27 +120,22 @@ class FirestoreService {
         );
       }
 
-      // 3. VERIFICA SE A ATIVIDADE JÁ FOI COMPLETADA
-      final alreadyCompleted = await hasCompletedActivity(uid, activityId);
-      if (alreadyCompleted) {
-        return;
-      }
-
       final userRef = _firestore.collection(usersCollection).doc(uid);
 
-      // 4. PREPARA PROGRESSO DA ATIVIDADE
+      // 3. PREPARA REGISTRO DA ATIVIDADE (ID único por conclusão)
+      final now = DateTime.now();
+      final docId = '$activityId-${now.millisecondsSinceEpoch}';
       final activityProgress = ActivityProgress(
         activityId: activityId,
         activityName: activityName,
         points: points,
-        completedAt: DateTime.now(),
+        completedAt: now,
         attempts: attempts,
         accuracy: accuracy,
       );
 
-      // 5. CALCULA PROGRESSO E LEVEL-UP
-      const int progressPerActivity = 50;
-      int newProgress = userData.progress + progressPerActivity;
+      // 4. CALCULA PROGRESSO E LEVEL-UP
+      int newProgress = userData.progress + points;
       int newLevel = userData.level;
 
       while (newProgress >= 100) {
@@ -148,7 +143,7 @@ class FirestoreService {
         newProgress -= 100;
       }
 
-      // 6. ATUALIZA SUBCOLEÇÃO E DOCUMENTO DO USUÁRIO EM BATCH ATÔMICO
+      // 5. ATUALIZA SUBCOLEÇÃO E DOCUMENTO DO USUÁRIO EM BATCH ATÔMICO
       final Map<String, dynamic> updateData = {
         'totalPoints': FieldValue.increment(points),
         'activitiesCompleted': FieldValue.increment(1),
@@ -162,7 +157,7 @@ class FirestoreService {
 
       final batch = _firestore.batch();
       batch.set(
-        userRef.collection(activitiesCollection).doc(activityId),
+        userRef.collection(activitiesCollection).doc(docId),
         activityProgress.toFirestore(),
       );
       batch.update(userRef, updateData);

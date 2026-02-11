@@ -176,7 +176,7 @@ class _ActivityCompleteWordState extends State<ActivityCompleteWord> {
           uid: userProvider.uid!,
           activityId: 'complete-word',
           activityName: 'Completar Palavras',
-          points: 50,
+          points: 100,
           attempts: _totalAttempts,
           accuracy: _correctCount / _words.length,
         );
@@ -191,7 +191,7 @@ class _ActivityCompleteWordState extends State<ActivityCompleteWord> {
           );
         }
 
-        debugPrint('✅ Progresso salvo: +50 pontos');
+        debugPrint('✅ Progresso salvo: +100 pontos');
       } catch (e) {
         debugPrint('❌ Erro ao salvar: $e');
         if (mounted) {
@@ -245,7 +245,7 @@ class _ActivityCompleteWordState extends State<ActivityCompleteWord> {
                   Icon(Icons.star, color: Colors.amber.shade700, size: 28),
                   const SizedBox(width: 8),
                   const Text(
-                    '+50 pontos',
+                    '+100 pontos',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

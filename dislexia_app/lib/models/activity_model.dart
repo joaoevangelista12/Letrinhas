@@ -43,7 +43,7 @@ class Activities {
       description: 'Combine palavras com imagens correspondentes',
       requiredLevel: 1, // Nível 1 → Atividade 1
       route: '/activity-match',
-      points: 50,
+      points: 100,
     ),
     ActivityModel(
       id: completeWordId,
@@ -51,7 +51,7 @@ class Activities {
       description: 'Complete as palavras com letras faltando',
       requiredLevel: 2, // Nível 2 → Atividade 2
       route: '/activity-complete-word',
-      points: 50,
+      points: 100,
     ),
     ActivityModel(
       id: orderSyllablesId,
@@ -59,7 +59,7 @@ class Activities {
       description: 'Arraste as sílabas na ordem correta',
       requiredLevel: 3, // Nível 3 → Atividade 3
       route: '/activity-order-syllables',
-      points: 50,
+      points: 100,
     ),
     ActivityModel(
       id: readSentencesId,
@@ -67,7 +67,7 @@ class Activities {
       description: 'Leia e interprete frases curtas',
       requiredLevel: 1,
       route: '/activity-read-sentences',
-      points: 50,
+      points: 100,
     ),
     ActivityModel(
       id: audioImageId,
@@ -75,7 +75,7 @@ class Activities {
       description: 'Associe sons a imagens correspondentes',
       requiredLevel: 1,
       route: '/activity-audio-image',
-      points: 50,
+      points: 100,
     ),
   ];
 

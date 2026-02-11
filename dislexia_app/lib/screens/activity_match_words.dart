@@ -186,7 +186,7 @@ class _ActivityMatchWordsState extends State<ActivityMatchWords> {
                   Icon(Icons.star, color: Colors.amber.shade700, size: 28),
                   const SizedBox(width: 8),
                   const Text(
-                    '+50 pontos',
+                    '+100 pontos',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -230,7 +230,7 @@ class _ActivityMatchWordsState extends State<ActivityMatchWords> {
           uid: userProvider.uid!,
           activityId: 'match-words',
           activityName: 'Associar Palavras',
-          points: 50,
+          points: 100,
           attempts: 1,
           accuracy: 1.0,
         );
