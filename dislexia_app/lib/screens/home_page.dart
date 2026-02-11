@@ -468,16 +468,16 @@ class _HomePageState extends State<HomePage> {
     final Color color;
 
     switch (activity.id) {
-      case Activities.matchWordsId:
-        icon = Icons.image_outlined;
+      case Activities.syllabicId:
+        icon = Icons.abc;
         color = Colors.blue;
         break;
-      case Activities.completeWordId:
-        icon = Icons.text_fields;
+      case Activities.formWordId:
+        icon = Icons.extension;
         color = Colors.green;
         break;
-      case Activities.orderSyllablesId:
-        icon = Icons.reorder;
+      case Activities.matchImageId:
+        icon = Icons.image_outlined;
         color = Colors.orange;
         break;
       default:

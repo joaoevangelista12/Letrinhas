@@ -29,52 +29,34 @@ class ActivityModel {
 /// IMPORTANTE: Esta é a fonte de verdade para atividades e níveis
 class Activities {
   // IDs das atividades (imutáveis)
-  static const String matchWordsId = 'match-words';
-  static const String completeWordId = 'complete-word';
-  static const String orderSyllablesId = 'order-syllables';
-  static const String readSentencesId = 'read-sentences';
-  static const String audioImageId = 'audio-image';
+  static const String syllabicId = 'syllabic';
+  static const String formWordId = 'form-word';
+  static const String matchImageId = 'match-image';
 
-  /// Lista de todas as atividades (apenas 3 inicialmente)
+  /// Lista de todas as atividades
   static const List<ActivityModel> all = [
     ActivityModel(
-      id: matchWordsId,
-      name: 'Associar Palavras',
-      description: 'Combine palavras com imagens correspondentes',
-      requiredLevel: 1, // Nível 1 → Atividade 1
-      route: '/activity-match',
-      points: 100,
-    ),
-    ActivityModel(
-      id: completeWordId,
-      name: 'Completar Palavras',
-      description: 'Complete as palavras com letras faltando',
-      requiredLevel: 2, // Nível 2 → Atividade 2
-      route: '/activity-complete-word',
-      points: 100,
-    ),
-    ActivityModel(
-      id: orderSyllablesId,
-      name: 'Ordenar Sílabas',
-      description: 'Arraste as sílabas na ordem correta',
-      requiredLevel: 3, // Nível 3 → Atividade 3
-      route: '/activity-order-syllables',
-      points: 100,
-    ),
-    ActivityModel(
-      id: readSentencesId,
-      name: 'Leitura de Frases',
-      description: 'Leia e interprete frases curtas',
+      id: syllabicId,
+      name: 'Atividade Silábica',
+      description: 'Identifique e separe as sílabas corretamente',
       requiredLevel: 1,
-      route: '/activity-read-sentences',
+      route: '/activity-syllabic',
       points: 100,
     ),
     ActivityModel(
-      id: audioImageId,
-      name: 'Reforço Áudio e Imagem',
-      description: 'Associe sons a imagens correspondentes',
-      requiredLevel: 1,
-      route: '/activity-audio-image',
+      id: formWordId,
+      name: 'Formar Palavra com Sílabas',
+      description: 'Junte as sílabas para formar a palavra da imagem',
+      requiredLevel: 2,
+      route: '/activity-form-word',
+      points: 100,
+    ),
+    ActivityModel(
+      id: matchImageId,
+      name: 'Relacionar Palavra com Imagem',
+      description: 'Escolha a palavra correta para a imagem mostrada',
+      requiredLevel: 3,
+      route: '/activity-match-image',
       points: 100,
     ),
   ];
@@ -119,7 +101,6 @@ class Activities {
     final lockedActivities = getLockedActivities(currentLevel);
     if (lockedActivities.isEmpty) return null;
 
-    // Retorna o menor nível necessário entre as atividades bloqueadas
     return lockedActivities
         .map((a) => a.requiredLevel)
         .reduce((min, level) => level < min ? level : min);

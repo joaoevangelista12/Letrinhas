@@ -10,11 +10,9 @@ import 'screens/splash_page.dart';
 import 'screens/login_page.dart';
 import 'screens/register_page.dart';
 import 'screens/home_page.dart';
-import 'screens/activity_match_words.dart';
-import 'screens/activity_complete_word.dart';
-import 'screens/activity_order_syllables.dart';
-import 'screens/activity_read_sentences.dart';
-import 'screens/activity_audio_image.dart';
+import 'screens/activity_syllabic.dart';
+import 'screens/activity_form_word.dart';
+import 'screens/activity_match_image.dart';
 import 'screens/settings_page.dart';
 import 'screens/profile_page.dart';
 import 'models/activity_model.dart';
@@ -113,22 +111,18 @@ class _DislexiaAppState extends State<DislexiaApp> {
         '/home': (context) => const HomePage(),
 
         // Atividades protegidas por nível (sistema de progressão)
-        '/activity-match': (context) => const ProtectedActivity(
-              activityId: Activities.matchWordsId,
-              child: ActivityMatchWords(),
+        '/activity-syllabic': (context) => const ProtectedActivity(
+              activityId: Activities.syllabicId,
+              child: ActivitySyllabic(),
             ),
-        '/activity-complete-word': (context) => const ProtectedActivity(
-              activityId: Activities.completeWordId,
-              child: ActivityCompleteWord(),
+        '/activity-form-word': (context) => const ProtectedActivity(
+              activityId: Activities.formWordId,
+              child: ActivityFormWord(),
             ),
-        '/activity-order-syllables': (context) => const ProtectedActivity(
-              activityId: Activities.orderSyllablesId,
-              child: ActivityOrderSyllables(),
+        '/activity-match-image': (context) => const ProtectedActivity(
+              activityId: Activities.matchImageId,
+              child: ActivityMatchImage(),
             ),
-
-        // Atividades sem proteção de nível (disponíveis para todos)
-        '/activity-read-sentences': (context) => const ActivityReadSentences(),
-        '/activity-audio-image': (context) => const ActivityAudioImage(),
 
         '/settings': (context) => const SettingsPage(),
         '/profile': (context) => const ProfilePage(),
