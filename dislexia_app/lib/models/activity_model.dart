@@ -32,6 +32,8 @@ class Activities {
   static const String matchWordsId = 'match-words';
   static const String completeWordId = 'complete-word';
   static const String orderSyllablesId = 'order-syllables';
+  static const String readSentencesId = 'read-sentences';
+  static const String audioImageId = 'audio-image';
 
   /// Lista de todas as atividades (apenas 3 inicialmente)
   static const List<ActivityModel> all = [
@@ -57,6 +59,22 @@ class Activities {
       description: 'Arraste as sílabas na ordem correta',
       requiredLevel: 3, // Nível 3 → Atividade 3
       route: '/activity-order-syllables',
+      points: 50,
+    ),
+    ActivityModel(
+      id: readSentencesId,
+      name: 'Leitura de Frases',
+      description: 'Leia e interprete frases curtas',
+      requiredLevel: 1,
+      route: '/activity-read-sentences',
+      points: 50,
+    ),
+    ActivityModel(
+      id: audioImageId,
+      name: 'Reforço Áudio e Imagem',
+      description: 'Associe sons a imagens correspondentes',
+      requiredLevel: 1,
+      route: '/activity-audio-image',
       points: 50,
     ),
   ];
