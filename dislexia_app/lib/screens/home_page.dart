@@ -496,7 +496,10 @@ class _HomePageState extends State<HomePage> {
       child: InkWell(
         onTap: isLocked
             ? () => _showLockedDialog(context, activity)
-            : () => Navigator.of(context).pushNamed(activity.route),
+            : () async {
+                await Navigator.of(context).pushNamed(activity.route);
+                _loadUserData(); // Recarrega dados ao voltar da atividade
+              },
         borderRadius: BorderRadius.circular(16),
         child: Opacity(
           opacity: isLocked ? 0.6 : 1.0,

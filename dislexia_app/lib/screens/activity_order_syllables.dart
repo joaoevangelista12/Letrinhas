@@ -199,6 +199,14 @@ class _ActivityOrderSyllablesState extends State<ActivityOrderSyllables> {
         debugPrint('✅ Progresso salvo: +50 pontos');
       } catch (e) {
         debugPrint('❌ Erro ao salvar: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erro ao salvar progresso: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }

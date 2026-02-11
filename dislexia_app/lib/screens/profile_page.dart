@@ -92,6 +92,8 @@ class _ProfilePageState extends State<ProfilePage> {
             userProvider.updateProgress(
               totalPoints: userData.totalPoints,
               activitiesCompleted: userData.activitiesCompleted,
+              level: userData.level,
+              progress: userData.progress,
             );
           }
         }

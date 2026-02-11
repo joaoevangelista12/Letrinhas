@@ -248,6 +248,14 @@ class _ActivityMatchWordsState extends State<ActivityMatchWords> {
       }
     } catch (e) {
       debugPrint('Erro ao salvar progresso: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao salvar progresso: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
