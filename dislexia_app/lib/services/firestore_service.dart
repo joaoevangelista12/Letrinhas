@@ -128,7 +128,7 @@ class FirestoreService {
 
       final userRef = _firestore.collection(usersCollection).doc(uid);
 
-      // 4. SALVA PROGRESSO DA ATIVIDADE
+      // 4. PREPARA PROGRESSO DA ATIVIDADE
       final activityProgress = ActivityProgress(
         activityId: activityId,
         activityName: activityName,
@@ -138,37 +138,35 @@ class FirestoreService {
         accuracy: accuracy,
       );
 
-      await userRef
-          .collection(activitiesCollection)
-          .doc(activityId)
-          .set(activityProgress.toFirestore());
-
       // 5. CALCULA PROGRESSO E LEVEL-UP
-      // Cada atividade concluída dá 50 pontos de progresso
       const int progressPerActivity = 50;
       int newProgress = userData.progress + progressPerActivity;
       int newLevel = userData.level;
 
-      // Se atingir 100 ou mais, sobe de nível e reseta progresso
       while (newProgress >= 100) {
         newLevel++;
         newProgress -= 100;
       }
 
-      // 6. ATUALIZA DADOS DO USUÁRIO
+      // 6. ATUALIZA SUBCOLEÇÃO E DOCUMENTO DO USUÁRIO EM BATCH ATÔMICO
       final Map<String, dynamic> updateData = {
         'totalPoints': FieldValue.increment(points),
         'activitiesCompleted': FieldValue.increment(1),
         'completedActivities': FieldValue.arrayUnion([activityId]),
-        'progress': newProgress, // Atualiza progresso (0-100)
+        'progress': newProgress,
       };
 
-      // Adiciona level ao update se subiu de nível
       if (newLevel > userData.level) {
         updateData['level'] = newLevel;
       }
 
-      await userRef.update(updateData);
+      final batch = _firestore.batch();
+      batch.set(
+        userRef.collection(activitiesCollection).doc(activityId),
+        activityProgress.toFirestore(),
+      );
+      batch.update(userRef, updateData);
+      await batch.commit();
     } catch (e) {
       throw Exception('Erro ao registrar atividade: $e');
     }
