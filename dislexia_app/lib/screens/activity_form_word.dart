@@ -1,15 +1,16 @@
 // arquivo: lib/screens/activity_form_word.dart
 
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
+import 'package:confetti_widget/confetti_widget.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../services/firestore_service.dart';
-import '../utils/tts_helper.dart';
+import '../utils/sound_helper.dart';
 import '../providers/accessibility_provider.dart';
 
 /// Activity: Formar Palavra com Silabas
-///Usuário toca nas sílabas na ordem correta para formar a palavra mostrada por um emoji
+/// Usuário toca nas sílabas na ordem correta para formar a palavra mostrada por um emoji
 class ActivityFormWord extends StatefulWidget {
   const ActivityFormWord({super.key});
 
@@ -17,9 +18,12 @@ class ActivityFormWord extends StatefulWidget {
   State<ActivityFormWord> createState() => _ActivityFormWordState();
 }
 
-class _ActivityFormWordState extends State<ActivityFormWord> {
-  late FlutterTts _flutterTts;
+class _ActivityFormWordState extends State<ActivityFormWord>
+    with SingleTickerProviderStateMixin {
   final FirestoreService _firestoreService = FirestoreService();
+  late ConfettiController _confettiController;
+  late AnimationController _shakeController;
+  late Animation<double> _shakeAnimation;
 
   // Lista de questões: emoji, palavra correta, sílabas embaralhadas
   final List<Map<String, dynamic>> _questions = [
@@ -63,26 +67,34 @@ class _ActivityFormWordState extends State<ActivityFormWord> {
   int _score = 0;
   int _correctCount = 0;
   int _totalAttempts = 0;
-  bool _isCompleted = false;
 
   @override
   void initState() {
     super.initState();
-    _flutterTts = FlutterTts();
-    _configureTts();
+    _confettiController =
+        ConfettiController(duration: const Duration(milliseconds: 800));
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _shakeAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0, end: -10), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: -10, end: 10), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 10, end: -8), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: -8, end: 6), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 6, end: 0), weight: 1),
+    ]).animate(CurvedAnimation(
+      parent: _shakeController,
+      curve: Curves.easeInOut,
+    ));
     _initializeQuestion();
-    _speakInstruction();
   }
 
   @override
   void dispose() {
-    _flutterTts.stop();
+    _confettiController.dispose();
+    _shakeController.dispose();
     super.dispose();
-  }
-
-  /// Configura TTS em Português Brasileiro
-  Future<void> _configureTts() async {
-    await TtsHelper.configurePortugueseBrazilian(_flutterTts);
   }
 
   /// Inicializa a questão atual
@@ -91,26 +103,6 @@ class _ActivityFormWordState extends State<ActivityFormWord> {
     final syllableCount = (question['syllables'] as List<String>).length;
     _slots = List.filled(syllableCount, null);
     _availableSyllables = List<String>.from(question['available']);
-  }
-
-  /// Fala instruções
-  Future<void> _speakInstruction() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    await _speak('Toque nas sílabas para formar a palavra');
-  }
-
-  /// Fala texto usando TTS
-  Future<void> _speak(String text) async {
-    final accessibilityProvider = context.read<AccessibilityProvider>();
-    if (!accessibilityProvider.enableSounds) return;
-
-    try {
-      await _flutterTts.setLanguage('pt-BR');
-      await _flutterTts.speak(text);
-      debugPrint('TTS: $text');
-    } catch (e) {
-      debugPrint('Erro TTS: $e');
-    }
   }
 
   /// Obtém questão atual
@@ -157,27 +149,34 @@ class _ActivityFormWordState extends State<ActivityFormWord> {
   void _checkAnswer() {
     final correctSyllables = _currentQuestion['syllables'] as List<String>;
 
+    bool correct = true;
+    for (int i = 0; i < _slots.length; i++) {
+      if (_slots[i] != correctSyllables[i]) {
+        correct = false;
+        break;
+      }
+    }
+
     setState(() {
       _showFeedback = true;
       _totalAttempts++;
+      _isCorrect = correct;
 
-      _isCorrect = true;
-      for (int i = 0; i < _slots.length; i++) {
-        if (_slots[i] != correctSyllables[i]) {
-          _isCorrect = false;
-          break;
-        }
-      }
-
-      if (_isCorrect) {
+      if (correct) {
         _score += 20;
         _correctCount++;
-        _speak('Correto! ${_currentQuestion['word']}');
       } else {
         _score -= 10;
-        _speak('Errado!');
       }
     });
+
+    if (correct) {
+      SoundHelper.playCorrect();
+      _confettiController.play();
+    } else {
+      SoundHelper.playWrong();
+      _shakeController.forward(from: 0);
+    }
 
     // Sempre avança para próxima questão (sem segunda chance)
     Future.delayed(const Duration(milliseconds: 1500), () {
@@ -189,10 +188,7 @@ class _ActivityFormWordState extends State<ActivityFormWord> {
           _isCorrect = false;
         });
         _initializeQuestion();
-        _speak('Próxima palavra');
       } else {
-        setState(() => _isCompleted = true);
-        _speak('Parabéns! Você completou a atividade!');
         _showCompletionDialog();
       }
     });
@@ -267,9 +263,12 @@ class _ActivityFormWordState extends State<ActivityFormWord> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.green.shade50,
+                color: _score >= 0 ? Colors.green.shade50 : Colors.red.shade50,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green, width: 2),
+                border: Border.all(
+                  color: _score >= 0 ? Colors.green : Colors.red,
+                  width: 2,
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -277,11 +276,11 @@ class _ActivityFormWordState extends State<ActivityFormWord> {
                   Icon(Icons.star, color: Colors.amber.shade700, size: 28),
                   const SizedBox(width: 8),
                   Text(
-                    '+$_score pontos',
-                    style: const TextStyle(
+                    '$_score pontos',
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                      color: _score >= 0 ? Colors.green : Colors.red,
                     ),
                   ),
                 ],
@@ -338,68 +337,95 @@ class _ActivityFormWordState extends State<ActivityFormWord> {
   @override
   Widget build(BuildContext context) {
     final accessibilityProvider = context.watch<AccessibilityProvider>();
-    final iconSize = 28.0 * accessibilityProvider.iconSize;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Formar Palavra'),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.volume_up, size: iconSize),
-            tooltip: 'Ouvir instruções',
-            onPressed: () => _speak('Toque nas sílabas para formar a palavra'),
+      ),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                children: [
+                  // Progresso
+                  _buildProgressIndicator(),
+                  const SizedBox(height: 24),
+
+                  // Emoji
+                  Text(
+                    _currentQuestion['emoji'],
+                    style: TextStyle(fontSize: 80 * accessibilityProvider.fontSize),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Slots para sílabas com shake animation
+                  AnimatedBuilder(
+                    animation: _shakeAnimation,
+                    builder: (context, child) => Transform.translate(
+                      offset: Offset(
+                          _showFeedback && !_isCorrect
+                              ? _shakeAnimation.value
+                              : 0,
+                          0),
+                      child: child,
+                    ),
+                    child: _buildSlots(),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Instruções
+                  Text(
+                    'Toque nas sílabas na ordem correta:',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Sílabas disponíveis
+                  _buildAvailableSyllables(),
+
+                  const Spacer(),
+
+                  // Feedback
+                  if (_showFeedback) _buildFeedback(),
+
+                  const SizedBox(height: 16),
+
+                  // Pontuação
+                  Text(
+                    'Pontos: $_score',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Confetti centralizado no topo
+          Align(
+            alignment: Alignment.topCenter,
+            child: ConfettiWidget(
+              confettiController: _confettiController,
+              blastDirection: pi / 2,
+              maxBlastForce: 20,
+              minBlastForce: 5,
+              emissionFrequency: 0.3,
+              numberOfParticles: 15,
+              gravity: 0.3,
+              colors: const [
+                Colors.green,
+                Colors.blue,
+                Colors.pink,
+                Colors.orange,
+                Colors.amber,
+              ],
+            ),
           ),
         ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              // Progresso
-              _buildProgressIndicator(),
-              const SizedBox(height: 24),
-
-              // Emoji
-              Text(
-                _currentQuestion['emoji'],
-                style: TextStyle(fontSize: 80 * accessibilityProvider.fontSize),
-              ),
-              const SizedBox(height: 24),
-
-              // Slots para sílabas
-              _buildSlots(),
-              const SizedBox(height: 32),
-
-              // Instruções
-              Text(
-                'Toque nas sílabas na ordem correta:',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 24),
-
-              // Sílabas disponíveis
-              _buildAvailableSyllables(),
-
-              const Spacer(),
-
-              // Feedback
-              if (_showFeedback) _buildFeedback(),
-
-              const SizedBox(height: 16),
-
-              // Pontuação
-              Text(
-                'Pontos: $_score',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.deepPurple,
-                    ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -540,31 +566,34 @@ class _ActivityFormWordState extends State<ActivityFormWord> {
   }
 
   Widget _buildFeedback() {
-    return AnimatedContainer(
+    return AnimatedOpacity(
+      opacity: _showFeedback ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _isCorrect ? Colors.green : Colors.red,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            _isCorrect ? Icons.check_circle : Icons.cancel,
-            color: Colors.white,
-            size: 32,
-          ),
-          const SizedBox(width: 12),
-          Text(
-            _isCorrect ? 'Correto! +20 pontos' : 'Errado! -10 pontos',
-            style: const TextStyle(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: _isCorrect ? Colors.green : Colors.red,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _isCorrect ? Icons.check_circle : Icons.cancel,
               color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              size: 32,
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Text(
+              _isCorrect ? 'Correto! +20 pontos' : 'Errado! -10 pontos',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

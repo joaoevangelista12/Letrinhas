@@ -14,8 +14,11 @@ dependencies:
   # Gerenciamento de estado simples
   provider: ^6.1.2
 
-  # Text-to-Speech para feedback sonoro
-  flutter_tts: ^4.0.2
+  # Efeitos sonoros
+  audioplayers: ^6.1.0
+
+  # Animação de confete
+  confetti_widget: ^0.4.0
 
   # Ícones
   cupertino_icons: ^1.0.8

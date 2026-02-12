@@ -1,3 +1,0 @@
-# Pasta de sons
-# Adicione aqui os arquivos de áudio usados no app (formato MP3, WAV, etc.)
-# Exemplo:CorrectSound.mp3, IncorrectSound.wav, etc.

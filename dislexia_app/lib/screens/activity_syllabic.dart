@@ -1,11 +1,12 @@
 // arquivo: lib/screens/activity_syllabic.dart
 
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
+import 'package:confetti_widget/confetti_widget.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../services/firestore_service.dart';
-import '../utils/tts_helper.dart';
+import '../utils/sound_helper.dart';
 import '../providers/accessibility_provider.dart';
 
 /// Activity: Atividade Silábica
@@ -17,9 +18,12 @@ class ActivitySyllabic extends StatefulWidget {
   State<ActivitySyllabic> createState() => _ActivitySyllabicState();
 }
 
-class _ActivitySyllabicState extends State<ActivitySyllabic> {
-  late FlutterTts _flutterTts;
+class _ActivitySyllabicState extends State<ActivitySyllabic>
+    with SingleTickerProviderStateMixin {
   final FirestoreService _firestoreService = FirestoreService();
+  late ConfettiController _confettiController;
+  late AnimationController _shakeController;
+  late Animation<double> _shakeAnimation;
 
   // Lista de perguntas sobre sílabas
   final List<Map<String, dynamic>> _questions = [
@@ -67,45 +71,33 @@ class _ActivitySyllabicState extends State<ActivitySyllabic> {
   int _score = 0;
   int _correctCount = 0;
   int _totalAttempts = 0;
-  bool _isCompleted = false;
 
   @override
   void initState() {
     super.initState();
-    _flutterTts = FlutterTts();
-    _configureTts();
-    _speakInstruction();
+    _confettiController =
+        ConfettiController(duration: const Duration(milliseconds: 800));
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _shakeAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0, end: -10), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: -10, end: 10), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 10, end: -8), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: -8, end: 6), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 6, end: 0), weight: 1),
+    ]).animate(CurvedAnimation(
+      parent: _shakeController,
+      curve: Curves.easeInOut,
+    ));
   }
 
   @override
   void dispose() {
-    _flutterTts.stop();
+    _confettiController.dispose();
+    _shakeController.dispose();
     super.dispose();
-  }
-
-  /// Configura TTS em português brasileiro
-  Future<void> _configureTts() async {
-    await TtsHelper.configurePortugueseBrazilian(_flutterTts);
-  }
-
-  /// Fala instruções iniciais
-  Future<void> _speakInstruction() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    await _speak('Responda as perguntas sobre sílabas');
-  }
-
-  /// Fala texto usando TTS
-  Future<void> _speak(String text) async {
-    final accessibilityProvider = context.read<AccessibilityProvider>();
-    if (!accessibilityProvider.enableSounds) return;
-
-    try {
-      await _flutterTts.setLanguage('pt-BR');
-      await _flutterTts.speak(text);
-      debugPrint('🔊 TTS: $text');
-    } catch (e) {
-      debugPrint('❌ Erro TTS: $e');
-    }
   }
 
   /// Obtém pergunta atual
@@ -113,23 +105,32 @@ class _ActivitySyllabicState extends State<ActivitySyllabic> {
 
   /// Verifica se a opção selecionada está correta
   void _checkAnswer(dynamic option) {
-    if (_showFeedback) return; // Evita múltiplos cliques
+    if (_showFeedback) return;
+
+    final correct =
+        option.toString() == _currentQuestion['correct'].toString();
 
     setState(() {
       _selectedOption = option;
       _showFeedback = true;
-      _isCorrect = option.toString() == _currentQuestion['correct'].toString();
+      _isCorrect = correct;
       _totalAttempts++;
 
-      if (_isCorrect) {
+      if (correct) {
         _correctCount++;
         _score += 20;
-        _speak('Correto! Muito bem!');
       } else {
         _score -= 10;
-        _speak('Ops! Resposta errada');
       }
     });
+
+    if (correct) {
+      SoundHelper.playCorrect();
+      _confettiController.play();
+    } else {
+      SoundHelper.playWrong();
+      _shakeController.forward(from: 0);
+    }
 
     // Avança para próxima pergunta após feedback
     Future.delayed(const Duration(milliseconds: 1500), () {
@@ -141,11 +142,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic> {
             _showFeedback = false;
             _isCorrect = false;
           });
-          _speak(_currentQuestion['question']);
         } else {
-          // Completou todas as perguntas
-          setState(() => _isCompleted = true);
-          _speak('Parabéns! Você completou a atividade!');
           _showCompletionDialog();
         }
       }
@@ -221,9 +218,12 @@ class _ActivitySyllabicState extends State<ActivitySyllabic> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.green.shade50,
+                color: _score >= 0 ? Colors.green.shade50 : Colors.red.shade50,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green, width: 2),
+                border: Border.all(
+                  color: _score >= 0 ? Colors.green : Colors.red,
+                  width: 2,
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -231,11 +231,11 @@ class _ActivitySyllabicState extends State<ActivitySyllabic> {
                   Icon(Icons.star, color: Colors.amber.shade700, size: 28),
                   const SizedBox(width: 8),
                   Text(
-                    '+$_score pontos',
-                    style: const TextStyle(
+                    '$_score pontos',
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                      color: _score >= 0 ? Colors.green : Colors.red,
                     ),
                   ),
                 ],
@@ -254,7 +254,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic> {
                   _buildStatRow('Tentativas', '$_totalAttempts'),
                   _buildStatRow(
                     'Precisão',
-                    '${((_correctCount / _totalAttempts) * 100).toStringAsFixed(0)}%',
+                    '${((_correctCount / _questions.length) * 100).toStringAsFixed(0)}%',
                   ),
                 ],
               ),
@@ -291,84 +291,94 @@ class _ActivitySyllabicState extends State<ActivitySyllabic> {
   @override
   Widget build(BuildContext context) {
     final accessibilityProvider = context.watch<AccessibilityProvider>();
-    final iconSize = 28.0 * accessibilityProvider.iconSize;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Atividade Silábica'),
         centerTitle: true,
-        actions: [
-          // Botão de áudio para instruções
-          IconButton(
-            icon: Icon(Icons.volume_up, size: iconSize),
-            tooltip: 'Ouvir instruções',
-            onPressed: () => _speak(
-              'Responda as perguntas sobre sílabas',
+      ),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                children: [
+                  // Progresso e pontuação
+                  _buildProgressIndicator(),
+                  const SizedBox(height: 32),
+
+                  // Emoji da palavra
+                  Text(
+                    _currentQuestion['emoji'],
+                    style: TextStyle(fontSize: 80 * accessibilityProvider.fontSize),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Palavra destacada
+                  Text(
+                    _currentQuestion['word'],
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                          fontSize: 40 * accessibilityProvider.fontSize,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 4,
+                        ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Pergunta
+                  Text(
+                    _currentQuestion['question'],
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontSize: 20 * accessibilityProvider.fontSize,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Opções de resposta com shake animation
+                  AnimatedBuilder(
+                    animation: _shakeAnimation,
+                    builder: (context, child) => Transform.translate(
+                      offset: Offset(
+                          _showFeedback && !_isCorrect
+                              ? _shakeAnimation.value
+                              : 0,
+                          0),
+                      child: child,
+                    ),
+                    child: _buildOptions(),
+                  ),
+
+                  const Spacer(),
+
+                  // Feedback visual
+                  if (_showFeedback) _buildFeedback(),
+                ],
+              ),
+            ),
+          ),
+          // Confetti centralizado no topo
+          Align(
+            alignment: Alignment.topCenter,
+            child: ConfettiWidget(
+              confettiController: _confettiController,
+              blastDirection: pi / 2,
+              maxBlastForce: 20,
+              minBlastForce: 5,
+              emissionFrequency: 0.3,
+              numberOfParticles: 15,
+              gravity: 0.3,
+              colors: const [
+                Colors.green,
+                Colors.blue,
+                Colors.pink,
+                Colors.orange,
+                Colors.amber,
+              ],
             ),
           ),
         ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              // Progresso e pontuação
-              _buildProgressIndicator(),
-              const SizedBox(height: 32),
-
-              // Emoji da palavra
-              Text(
-                _currentQuestion['emoji'],
-                style: TextStyle(fontSize: 80 * accessibilityProvider.fontSize),
-              ),
-              const SizedBox(height: 16),
-
-              // Palavra destacada
-              Text(
-                _currentQuestion['word'],
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      fontSize: 40 * accessibilityProvider.fontSize,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 4,
-                    ),
-              ),
-              const SizedBox(height: 24),
-
-              // Pergunta
-              Text(
-                _currentQuestion['question'],
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontSize: 20 * accessibilityProvider.fontSize,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-
-              // Botão de áudio para pergunta
-              ElevatedButton.icon(
-                onPressed: () => _speak(_currentQuestion['question']),
-                icon: Icon(Icons.volume_up, size: iconSize),
-                label: const Text('Ouvir Pergunta'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Opções de resposta
-              _buildOptions(),
-
-              const Spacer(),
-
-              // Feedback visual
-              if (_showFeedback) _buildFeedback(),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -440,13 +450,8 @@ class _ActivitySyllabicState extends State<ActivitySyllabic> {
         Color bgColor = Colors.white;
 
         if (_showFeedback && isSelected) {
-          if (_isCorrect) {
-            borderColor = Colors.green;
-            bgColor = Colors.green.shade50;
-          } else {
-            borderColor = Colors.red;
-            bgColor = Colors.red.shade50;
-          }
+          borderColor = _isCorrect ? Colors.green : Colors.red;
+          bgColor = _isCorrect ? Colors.green.shade50 : Colors.red.shade50;
         }
 
         // Mostra a resposta correta quando errou
@@ -458,9 +463,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic> {
         return GestureDetector(
           onTap: _showFeedback ? null : () => _checkAnswer(option),
           child: AnimatedContainer(
-            duration: Duration(
-              milliseconds: accessibilityProvider.enableAnimations ? 200 : 0,
-            ),
+            duration: const Duration(milliseconds: 200),
             width: 80 * accessibilityProvider.iconSize,
             height: 80 * accessibilityProvider.iconSize,
             decoration: BoxDecoration(
@@ -479,13 +482,17 @@ class _ActivitySyllabicState extends State<ActivitySyllabic> {
               ],
             ),
             child: Center(
-              child: Text(
-                option.toString(),
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontSize: 28 * accessibilityProvider.fontSize,
-                      fontWeight: FontWeight.bold,
-                      color: borderColor,
-                    ),
+              child: AnimatedScale(
+                scale: _showFeedback && isSelected && _isCorrect ? 1.2 : 1.0,
+                duration: const Duration(milliseconds: 300),
+                child: Text(
+                  option.toString(),
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontSize: 28 * accessibilityProvider.fontSize,
+                        fontWeight: FontWeight.bold,
+                        color: borderColor,
+                      ),
+                ),
               ),
             ),
           ),
@@ -496,31 +503,34 @@ class _ActivitySyllabicState extends State<ActivitySyllabic> {
 
   /// Feedback visual
   Widget _buildFeedback() {
-    return AnimatedContainer(
+    return AnimatedOpacity(
+      opacity: _showFeedback ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _isCorrect ? Colors.green : Colors.red,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            _isCorrect ? Icons.check_circle : Icons.cancel,
-            color: Colors.white,
-            size: 32,
-          ),
-          const SizedBox(width: 12),
-          Text(
-            _isCorrect ? 'Correto! +20 pontos' : 'Errado! -10 pontos',
-            style: const TextStyle(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: _isCorrect ? Colors.green : Colors.red,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _isCorrect ? Icons.check_circle : Icons.cancel,
               color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              size: 32,
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Text(
+              _isCorrect ? 'Correto! +20 pontos' : 'Errado! -10 pontos',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
