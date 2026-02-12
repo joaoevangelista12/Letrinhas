@@ -10,6 +10,7 @@ import 'screens/splash_page.dart';
 import 'screens/login_page.dart';
 import 'screens/register_page.dart';
 import 'screens/home_page.dart';
+import 'screens/activity_recognize_letters.dart';
 import 'screens/activity_syllabic.dart';
 import 'screens/activity_form_word.dart';
 import 'screens/activity_match_image.dart';
@@ -111,6 +112,10 @@ class _DislexiaAppState extends State<DislexiaApp> {
         '/home': (context) => const HomePage(),
 
         // Atividades protegidas por nível (sistema de progressão)
+        '/activity-recognize-letters': (context) => const ProtectedActivity(
+              activityId: Activities.recognizeLettersId,
+              child: ActivityRecognizeLetters(),
+            ),
         '/activity-syllabic': (context) => const ProtectedActivity(
               activityId: Activities.syllabicId,
               child: ActivitySyllabic(),
