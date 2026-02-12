@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 import '../services/firestore_service.dart';
 import '../utils/sound_helper.dart';
+import '../utils/completion_feedback.dart';
 import '../providers/accessibility_provider.dart';
 
 /// Activity: Atividade Silábica
@@ -195,96 +196,12 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
 
     if (!mounted) return;
 
-    showDialog(
+    showCompletionFeedback(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.celebration, color: Colors.amber, size: 32),
-            SizedBox(width: 8),
-            Text('Parabéns!'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Você completou a atividade com sucesso!',
-              style: TextStyle(fontSize: 18),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: _score >= 0 ? Colors.green.shade50 : Colors.red.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _score >= 0 ? Colors.green : Colors.red,
-                  width: 2,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.star, color: Colors.amber.shade700, size: 28),
-                  const SizedBox(width: 8),
-                  Text(
-                    '$_score pontos',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: _score >= 0 ? Colors.green : Colors.red,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                children: [
-                  _buildStatRow('Acertos', '$_correctCount/${_questions.length}'),
-                  _buildStatRow('Tentativas', '$_totalAttempts'),
-                  _buildStatRow(
-                    'Precisão',
-                    '${((_correctCount / _questions.length) * 100).toStringAsFixed(0)}%',
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            },
-            child: const Text('Voltar para Home'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Constrói linha de estatística
-  Widget _buildStatRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-        ],
-      ),
+      score: _score,
+      correctCount: _correctCount,
+      totalQuestions: _questions.length,
+      totalAttempts: _totalAttempts,
     );
   }
 

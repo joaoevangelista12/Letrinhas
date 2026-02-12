@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../main.dart';
 import '../services/firestore_service.dart';
 import '../models/user_model.dart';
+import '../models/activity_model.dart';
 import '../providers/accessibility_provider.dart';
 
 /// Tela de Perfil e Progresso
@@ -23,42 +24,38 @@ class _ProfilePageState extends State<ProfilePage> {
   List<ActivityProgress> _activityHistory = [];
   bool _isLoading = true;
 
-  // Lista de todas as atividades disponíveis
+  // IDs válidos das atividades atuais (fonte de verdade: activity_model.dart)
+  static final Set<String> _validActivityIds = Activities.all.map((a) => a.id).toSet();
+
+  // Lista de todas as atividades disponíveis no app
   final List<Map<String, dynamic>> _allActivities = [
     {
-      'id': 'match-words-emoji',
-      'name': 'Associar Palavras',
-      'icon': Icons.image_outlined,
-      'color': Colors.blue,
-      'maxPoints': 50,
+      'id': Activities.recognizeLettersId,
+      'name': 'Reconhecendo Letras',
+      'icon': Icons.abc,
+      'color': Colors.teal,
+      'maxPoints': 100,
     },
     {
-      'id': 'complete-word',
-      'name': 'Completar Palavras',
+      'id': Activities.syllabicId,
+      'name': 'Atividade Silabica',
       'icon': Icons.text_fields,
-      'color': Colors.green,
-      'maxPoints': 50,
+      'color': Colors.blue,
+      'maxPoints': 100,
     },
     {
-      'id': 'order-syllables',
-      'name': 'Ordenar Sílabas',
-      'icon': Icons.reorder,
+      'id': Activities.formWordId,
+      'name': 'Formar Palavra com Silabas',
+      'icon': Icons.extension,
+      'color': Colors.deepPurple,
+      'maxPoints': 100,
+    },
+    {
+      'id': Activities.matchImageId,
+      'name': 'Relacionar Palavra com Imagem',
+      'icon': Icons.image_outlined,
       'color': Colors.orange,
-      'maxPoints': 50,
-    },
-    {
-      'id': 'read-sentences',
-      'name': 'Leitura de Frases',
-      'icon': Icons.menu_book,
-      'color': Colors.purple,
-      'maxPoints': 50,
-    },
-    {
-      'id': 'audio-image',
-      'name': 'Áudio e Imagem',
-      'icon': Icons.hearing,
-      'color': Colors.pink,
-      'maxPoints': 50,
+      'maxPoints': 100,
     },
   ];
 
@@ -81,9 +78,14 @@ class _ProfilePageState extends State<ProfilePage> {
         final activityHistory = await _firestoreService.getUserActivities(userProvider.uid!);
 
         if (mounted) {
+          // Filtra histórico para exibir apenas atividades que existem no app
+          final filteredHistory = activityHistory
+              .where((a) => _validActivityIds.contains(a.activityId))
+              .toList();
+
           setState(() {
             _userData = userData;
-            _activityHistory = activityHistory;
+            _activityHistory = filteredHistory;
             _isLoading = false;
           });
 

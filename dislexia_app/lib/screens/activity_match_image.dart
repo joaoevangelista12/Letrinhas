@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 import '../services/firestore_service.dart';
 import '../utils/sound_helper.dart';
+import '../utils/completion_feedback.dart';
 import '../providers/accessibility_provider.dart';
 
 /// Atividade: Relacionar Palavra com Imagem
@@ -184,134 +185,12 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
 
     if (!mounted) return;
 
-    final accessibility = Provider.of<AccessibilityProvider>(context, listen: false);
-
-    showDialog(
+    showCompletionFeedback(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.celebration, color: Colors.amber, size: 32 * accessibility.iconSize),
-            const SizedBox(width: 8),
-            Text(
-              'Parabéns!',
-              style: TextStyle(fontSize: 22 * accessibility.fontSize),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Você completou a atividade!',
-              style: TextStyle(fontSize: 16 * accessibility.fontSize),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: _score >= 0 ? Colors.green.shade50 : Colors.red.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _score >= 0 ? Colors.green.shade200 : Colors.red.shade200,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.star, color: Colors.amber.shade700, size: 28 * accessibility.iconSize),
-                  const SizedBox(width: 8),
-                  Text(
-                    '$_score pontos',
-                    style: TextStyle(
-                      fontSize: 20 * accessibility.fontSize,
-                      fontWeight: FontWeight.bold,
-                      color: _score >= 0 ? Colors.green : Colors.red,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.shade200),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Acertos:',
-                        style: TextStyle(fontSize: 14 * accessibility.fontSize),
-                      ),
-                      Text(
-                        '$_correctCount / 5',
-                        style: TextStyle(
-                          fontSize: 14 * accessibility.fontSize,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Tentativas:',
-                        style: TextStyle(fontSize: 14 * accessibility.fontSize),
-                      ),
-                      Text(
-                        '$_totalAttempts',
-                        style: TextStyle(
-                          fontSize: 14 * accessibility.fontSize,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Precisão:',
-                        style: TextStyle(fontSize: 14 * accessibility.fontSize),
-                      ),
-                      Text(
-                        '${(_correctCount / 5 * 100).toStringAsFixed(0)}%',
-                        style: TextStyle(
-                          fontSize: 14 * accessibility.fontSize,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Fecha diálogo
-              Navigator.of(context).pop(); // Volta para home
-            },
-            child: Text(
-              'Voltar para Home',
-              style: TextStyle(fontSize: 14 * accessibility.fontSize),
-            ),
-          ),
-        ],
-      ),
+      score: _score,
+      correctCount: _correctCount,
+      totalQuestions: _questions.length,
+      totalAttempts: _totalAttempts,
     );
   }
 
