@@ -18,7 +18,7 @@ dependencies:
   audioplayers: ^6.1.0
 
   # Animação de confete
-  confetti_widget: ^0.4.0
+  confetti: ^0.7.0
 
   # Ícones
   cupertino_icons: ^1.0.8

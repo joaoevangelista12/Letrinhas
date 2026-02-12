@@ -2,7 +2,7 @@
 
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:confetti_widget/confetti_widget.dart';
+import 'package:confetti/confetti.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../services/firestore_service.dart';
