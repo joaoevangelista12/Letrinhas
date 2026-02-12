@@ -89,9 +89,9 @@ class FirestoreService {
     }
   }
 
-  /// Registra conclusão de atividade e adiciona pontos
-  /// Permite repetição infinita: toda conclusão soma pontos e progresso
-  /// VALIDA SE O USUÁRIO TEM NÍVEL SUFICIENTE PARA ACESSAR A ATIVIDADE
+  /// Registra conclusão de atividade e adiciona/subtrai pontos
+  /// Pontuação da atividade pode ser negativa, mas totalPoints nunca fica < 0
+  /// Nível é bidirecional: level = (totalPoints ~/ 100) + 1
   Future<void> completeActivity({
     required String uid,
     required String activityId,
@@ -107,22 +107,22 @@ class FirestoreService {
         throw Exception('Usuário não encontrado');
       }
 
-      // 2. VALIDA SE O USUÁRIO PODE ACESSAR ESTA ATIVIDADE
-      final activity = Activities.getById(activityId);
-      if (activity == null) {
-        throw Exception('Atividade inválida: $activityId');
+      // 2. CALCULA NOVO TOTAL DE PONTOS (nunca negativo)
+      int newTotalPoints = userData.totalPoints + points;
+      if (newTotalPoints < 0) {
+        newTotalPoints = 0;
       }
 
-      if (!activity.canAccess(userData.level)) {
-        throw Exception(
-          'Acesso negado: Você precisa estar no nível ${activity.requiredLevel} '
-          'para acessar esta atividade. Seu nível atual: ${userData.level}',
-        );
-      }
+      // 3. CALCULA NÍVEL BASEADO NO TOTAL DE PONTOS (bidirecional)
+      // Level 1: 0-99, Level 2: 100-199, Level 3: 200-299...
+      final int newLevel = (newTotalPoints ~/ 100) + 1;
+
+      // 4. CALCULA PROGRESSO DENTRO DO NÍVEL (0-99)
+      final int newProgress = newTotalPoints % 100;
 
       final userRef = _firestore.collection(usersCollection).doc(uid);
 
-      // 3. PREPARA REGISTRO DA ATIVIDADE (ID único por conclusão)
+      // 5. PREPARA REGISTRO DA ATIVIDADE (ID único por conclusão)
       final now = DateTime.now();
       final docId = '$activityId-${now.millisecondsSinceEpoch}';
       final activityProgress = ActivityProgress(
@@ -134,26 +134,14 @@ class FirestoreService {
         accuracy: accuracy,
       );
 
-      // 4. CALCULA PROGRESSO E LEVEL-UP
-      int newProgress = userData.progress + points;
-      int newLevel = userData.level;
-
-      while (newProgress >= 100) {
-        newLevel++;
-        newProgress -= 100;
-      }
-
-      // 5. ATUALIZA SUBCOLEÇÃO E DOCUMENTO DO USUÁRIO EM BATCH ATÔMICO
+      // 6. ATUALIZA SUBCOLEÇÃO E DOCUMENTO DO USUÁRIO EM BATCH ATÔMICO
       final Map<String, dynamic> updateData = {
-        'totalPoints': FieldValue.increment(points),
+        'totalPoints': newTotalPoints,
         'activitiesCompleted': FieldValue.increment(1),
         'completedActivities': FieldValue.arrayUnion([activityId]),
+        'level': newLevel,
         'progress': newProgress,
       };
-
-      if (newLevel > userData.level) {
-        updateData['level'] = newLevel;
-      }
 
       final batch = _firestore.batch();
       batch.set(

@@ -153,7 +153,7 @@ class _ActivityFormWordState extends State<ActivityFormWord> {
     });
   }
 
-  /// Verifica se a resposta está correta
+  /// Verifica se a resposta está correta e avança direto (sem segunda chance)
   void _checkAnswer() {
     final correctSyllables = _currentQuestion['syllables'] as List<String>;
 
@@ -174,37 +174,28 @@ class _ActivityFormWordState extends State<ActivityFormWord> {
         _correctCount++;
         _speak('Correto! ${_currentQuestion['word']}');
       } else {
-        _score = (_score - 10).clamp(0, double.maxFinite.toInt());
-        _speak('Tente novamente');
+        _score -= 10;
+        _speak('Errado!');
       }
     });
 
-    if (_isCorrect) {
-      Future.delayed(const Duration(milliseconds: 1500), () {
-        if (!mounted) return;
-        if (_currentIndex < _questions.length - 1) {
-          setState(() {
-            _currentIndex++;
-            _showFeedback = false;
-            _isCorrect = false;
-          });
-          _initializeQuestion();
-          _speak('Próxima palavra');
-        } else {
-          setState(() => _isCompleted = true);
-          _speak('Parabéns! Você completou a atividade!');
-          _showCompletionDialog();
-        }
-      });
-    } else {
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        if (!mounted) return;
+    // Sempre avança para próxima questão (sem segunda chance)
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (!mounted) return;
+      if (_currentIndex < _questions.length - 1) {
         setState(() {
+          _currentIndex++;
           _showFeedback = false;
+          _isCorrect = false;
         });
         _initializeQuestion();
-      });
-    }
+        _speak('Próxima palavra');
+      } else {
+        setState(() => _isCompleted = true);
+        _speak('Parabéns! Você completou a atividade!');
+        _showCompletionDialog();
+      }
+    });
   }
 
   /// Salva progresso no Firestore
@@ -566,7 +557,7 @@ class _ActivityFormWordState extends State<ActivityFormWord> {
           ),
           const SizedBox(width: 12),
           Text(
-            _isCorrect ? 'Correto!' : 'Tente novamente',
+            _isCorrect ? 'Correto! +20 pontos' : 'Errado! -10 pontos',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 20,

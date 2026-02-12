@@ -96,7 +96,7 @@ class _ActivityMatchImageState extends State<ActivityMatchImage> {
     super.dispose();
   }
 
-  /// Processa a resposta do usuário
+  /// Processa a resposta do usuário (sem segunda chance — avança direto)
   void _handleAnswer(String option) {
     if (_isProcessing) return;
 
@@ -116,38 +116,25 @@ class _ActivityMatchImageState extends State<ActivityMatchImage> {
         _correctCount++;
         _speak('Correto! $option');
       } else {
-        _score = (_score - 10).clamp(0, double.infinity).toInt();
-        _speak('Ops! Tente novamente');
+        _score -= 10;
+        _speak('Errado!');
       }
     });
 
-    if (isCorrect) {
-      // Avança para a próxima questão após 1.5s
-      Future.delayed(const Duration(milliseconds: 1500), () {
-        if (!mounted) return;
-        if (_currentQuestion < _questions.length - 1) {
-          setState(() {
-            _currentQuestion++;
-            _selectedOption = null;
-            _lastAnswerCorrect = null;
-            _isProcessing = false;
-          });
-        } else {
-          // Atividade concluída
-          _showCompletionDialog();
-        }
-      });
-    } else {
-      // Reseta para tentar novamente após 1s
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        if (!mounted) return;
+    // Sempre avança para próxima questão (sem segunda chance)
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (!mounted) return;
+      if (_currentQuestion < _questions.length - 1) {
         setState(() {
+          _currentQuestion++;
           _selectedOption = null;
           _lastAnswerCorrect = null;
           _isProcessing = false;
         });
-      });
-    }
+      } else {
+        _showCompletionDialog();
+      }
+    });
   }
 
   /// Salva progresso no Firestore e mostra diálogo de conclusão

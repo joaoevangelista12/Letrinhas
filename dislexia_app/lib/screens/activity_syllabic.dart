@@ -126,7 +126,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic> {
         _score += 20;
         _speak('Correto! Muito bem!');
       } else {
-        _score = (_score - 10).clamp(0, double.infinity).toInt();
+        _score -= 10;
         _speak('Ops! Resposta errada');
       }
     });
