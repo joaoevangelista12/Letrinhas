@@ -53,10 +53,10 @@ class _ActivityFormWordState extends State<ActivityFormWord>
       'available': ['TO', 'SA', 'PA'],
     },
     {
-      'emoji': '\u{1F338}',
-      'word': 'FLOR',
-      'syllables': ['FLOR'],
-      'available': ['FLOR'],
+      'emoji': '\u{1F34C}',
+      'word': 'BANANA',
+      'syllables': ['BA', 'NA', 'NA'],
+      'available': ['NA', 'BA', 'NA'],
     },
   ];
 

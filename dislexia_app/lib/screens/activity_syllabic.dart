@@ -10,8 +10,9 @@ import '../utils/sound_helper.dart';
 import '../utils/completion_feedback.dart';
 import '../providers/accessibility_provider.dart';
 
-/// Activity: Atividade Silábica
-/// Usuário responde 5 perguntas sobre sílabas (contagem, identificação)
+/// Atividade 2: Complete a palavra com a letra que falta
+/// Mostra imagem + palavra com lacuna + 4 opções de letras
+/// 5 questões, +20 acerto, -10 erro, sem segunda tentativa
 class ActivitySyllabic extends StatefulWidget {
   const ActivitySyllabic({super.key});
 
@@ -26,47 +27,47 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
 
-  // Lista de perguntas sobre sílabas
+  // Questões: emoji, palavra completa, índice da letra faltando, opções
   final List<Map<String, dynamic>> _questions = [
     {
-      'question': 'Quantas sílabas tem a palavra GATO?',
-      'word': 'GATO',
+      'emoji': '🌸',
+      'word': 'FLOR',
+      'missingIndex': 2,
+      'correct': 'O',
+      'options': ['O', 'A', 'E', 'U'],
+    },
+    {
       'emoji': '🐱',
-      'options': [1, 2, 3, 4],
-      'correct': 2,
+      'word': 'GATO',
+      'missingIndex': 1,
+      'correct': 'A',
+      'options': ['A', 'O', 'E', 'I'],
     },
     {
-      'question': 'Qual é a primeira sílaba de CASA?',
-      'word': 'CASA',
       'emoji': '🏠',
-      'options': ['CA', 'SA', 'AS', 'AC'],
-      'correct': 'CA',
+      'word': 'CASA',
+      'missingIndex': 2,
+      'correct': 'S',
+      'options': ['S', 'Z', 'R', 'L'],
     },
     {
-      'question': 'Quantas sílabas tem BORBOLETA?',
-      'word': 'BORBOLETA',
-      'emoji': '🦋',
-      'options': [2, 3, 4, 5],
-      'correct': 4,
+      'emoji': '⚽',
+      'word': 'BOLA',
+      'missingIndex': 0,
+      'correct': 'B',
+      'options': ['B', 'D', 'P', 'V'],
     },
     {
-      'question': 'Qual é a última sílaba de SAPATO?',
-      'word': 'SAPATO',
-      'emoji': '👞',
-      'options': ['SA', 'PA', 'TO', 'AP'],
-      'correct': 'TO',
-    },
-    {
-      'question': 'Quantas sílabas tem SOL?',
-      'word': 'SOL',
-      'emoji': '☀️',
-      'options': [1, 2, 3, 4],
-      'correct': 1,
+      'emoji': '🦆',
+      'word': 'PATO',
+      'missingIndex': 3,
+      'correct': 'O',
+      'options': ['O', 'A', 'U', 'E'],
     },
   ];
 
   int _currentQuestionIndex = 0;
-  dynamic _selectedOption;
+  String? _selectedOption;
   bool _showFeedback = false;
   bool _isCorrect = false;
   int _score = 0;
@@ -101,15 +102,19 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
     super.dispose();
   }
 
-  /// Obtém pergunta atual
   Map<String, dynamic> get _currentQuestion => _questions[_currentQuestionIndex];
 
-  /// Verifica se a opção selecionada está correta
-  void _checkAnswer(dynamic option) {
+  /// Monta a palavra com a lacuna (ex: "FL_R")
+  String get _wordWithGap {
+    final word = _currentQuestion['word'] as String;
+    final idx = _currentQuestion['missingIndex'] as int;
+    return '${word.substring(0, idx)}_${word.substring(idx + 1)}';
+  }
+
+  void _checkAnswer(String option) {
     if (_showFeedback) return;
 
-    final correct =
-        option.toString() == _currentQuestion['correct'].toString();
+    final correct = option == _currentQuestion['correct'];
 
     setState(() {
       _selectedOption = option;
@@ -133,24 +138,21 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
       _shakeController.forward(from: 0);
     }
 
-    // Avança para próxima pergunta após feedback
     Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted) {
-        if (_currentQuestionIndex < _questions.length - 1) {
-          setState(() {
-            _currentQuestionIndex++;
-            _selectedOption = null;
-            _showFeedback = false;
-            _isCorrect = false;
-          });
-        } else {
-          _showCompletionDialog();
-        }
+      if (!mounted) return;
+      if (_currentQuestionIndex < _questions.length - 1) {
+        setState(() {
+          _currentQuestionIndex++;
+          _selectedOption = null;
+          _showFeedback = false;
+          _isCorrect = false;
+        });
+      } else {
+        _showCompletionDialog();
       }
     });
   }
 
-  /// Salva progresso no Firestore
   Future<void> _saveProgress() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
@@ -159,7 +161,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
         await _firestoreService.completeActivity(
           uid: userProvider.uid!,
           activityId: 'syllabic',
-          activityName: 'Atividade Silábica',
+          activityName: 'Complete a Palavra',
           points: _score,
           attempts: _totalAttempts,
           accuracy: _correctCount / 5,
@@ -174,10 +176,8 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
             progress: userData.progress,
           );
         }
-
-        debugPrint('✅ Progresso salvo: +$_score pontos');
       } catch (e) {
-        debugPrint('❌ Erro ao salvar: $e');
+        debugPrint('Erro ao salvar: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -190,10 +190,8 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
     }
   }
 
-  /// Mostra diálogo de conclusão
   void _showCompletionDialog() async {
     await _saveProgress();
-
     if (!mounted) return;
 
     showCompletionFeedback(
@@ -211,7 +209,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Atividade Silábica'),
+        title: const Text('Complete a Palavra'),
         centerTitle: true,
       ),
       body: Stack(
@@ -223,29 +221,30 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
                 children: [
                   // Progresso e pontuação
                   _buildProgressIndicator(),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
-                  // Emoji da palavra
+                  // Emoji da imagem
                   Text(
                     _currentQuestion['emoji'],
-                    style: TextStyle(fontSize: 80 * accessibilityProvider.fontSize),
+                    style: TextStyle(
+                        fontSize: 80 * accessibilityProvider.fontSize),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Palavra com lacuna
+                  Text(
+                    _wordWithGap,
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                          fontSize: 48 * accessibilityProvider.fontSize,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 8,
+                        ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Palavra destacada
+                  // Instrução
                   Text(
-                    _currentQuestion['word'],
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          fontSize: 40 * accessibilityProvider.fontSize,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 4,
-                        ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Pergunta
-                  Text(
-                    _currentQuestion['question'],
+                    'Qual letra completa a palavra?',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontSize: 20 * accessibilityProvider.fontSize,
                         ),
@@ -253,7 +252,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
                   ),
                   const SizedBox(height: 32),
 
-                  // Opções de resposta com shake animation
+                  // Opções com shake
                   AnimatedBuilder(
                     animation: _shakeAnimation,
                     builder: (context, child) => Transform.translate(
@@ -275,7 +274,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
               ),
             ),
           ),
-          // Confetti centralizado no topo
+          // Confetti
           Align(
             alignment: Alignment.topCenter,
             child: ConfettiWidget(
@@ -300,7 +299,6 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
     );
   }
 
-  /// Indicador de progresso com pontuação
   Widget _buildProgressIndicator() {
     return Column(
       children: [
@@ -312,7 +310,8 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
               style: Theme.of(context).textTheme.titleMedium,
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
                 color: Colors.amber.shade100,
                 borderRadius: BorderRadius.circular(16),
@@ -348,30 +347,27 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
     );
   }
 
-  /// Opções de resposta
   Widget _buildOptions() {
     final accessibilityProvider = context.watch<AccessibilityProvider>();
-    final List<dynamic> options = _currentQuestion['options'];
+    final List<String> options =
+        List<String>.from(_currentQuestion['options']);
 
     return Wrap(
       spacing: 16,
       runSpacing: 16,
       alignment: WrapAlignment.center,
       children: options.map((option) {
-        final isSelected = _selectedOption != null &&
-            _selectedOption.toString() == option.toString();
-        final isCorrectAnswer =
-            option.toString() == _currentQuestion['correct'].toString();
+        final isSelected = _selectedOption == option;
+        final isCorrectAnswer = option == _currentQuestion['correct'];
 
         Color borderColor = Theme.of(context).primaryColor;
         Color bgColor = Colors.white;
 
         if (_showFeedback && isSelected) {
           borderColor = _isCorrect ? Colors.green : Colors.red;
-          bgColor = _isCorrect ? Colors.green.shade50 : Colors.red.shade50;
+          bgColor =
+              _isCorrect ? Colors.green.shade50 : Colors.red.shade50;
         }
-
-        // Mostra a resposta correta quando errou
         if (_showFeedback && !_isCorrect && isCorrectAnswer) {
           borderColor = Colors.green;
           bgColor = Colors.green.shade50;
@@ -400,12 +396,16 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
             ),
             child: Center(
               child: AnimatedScale(
-                scale: _showFeedback && isSelected && _isCorrect ? 1.2 : 1.0,
+                scale:
+                    _showFeedback && isSelected && _isCorrect ? 1.2 : 1.0,
                 duration: const Duration(milliseconds: 300),
                 child: Text(
-                  option.toString(),
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontSize: 28 * accessibilityProvider.fontSize,
+                  option,
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineMedium
+                      ?.copyWith(
+                        fontSize: 32 * accessibilityProvider.fontSize,
                         fontWeight: FontWeight.bold,
                         color: borderColor,
                       ),
@@ -418,7 +418,6 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
     );
   }
 
-  /// Feedback visual
   Widget _buildFeedback() {
     return AnimatedOpacity(
       opacity: _showFeedback ? 1.0 : 0.0,

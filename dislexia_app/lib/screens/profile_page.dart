@@ -38,7 +38,7 @@ class _ProfilePageState extends State<ProfilePage> {
     },
     {
       'id': Activities.syllabicId,
-      'name': 'Atividade Silabica',
+      'name': 'Complete a Palavra',
       'icon': Icons.text_fields,
       'color': Colors.blue,
       'maxPoints': 100,
@@ -414,7 +414,9 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Faltam ${100 - (userProvider.levelProgress * 100).toInt()} pontos para o nível ${userProvider.level + 1}',
+            userProvider.level >= 4
+                ? 'Voce alcancou o nivel maximo!'
+                : 'Faltam ${100 - (userProvider.levelProgress * 100).toInt()} pontos para o nivel ${userProvider.level + 1}',
             style: TextStyle(
               fontSize: 13,
               color: Colors.grey.shade600,

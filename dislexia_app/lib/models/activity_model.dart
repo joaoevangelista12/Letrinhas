@@ -46,8 +46,8 @@ class Activities {
     ),
     ActivityModel(
       id: syllabicId,
-      name: 'Atividade Silábica',
-      description: 'Identifique e separe as sílabas corretamente',
+      name: 'Complete a Palavra',
+      description: 'Complete a palavra com a letra que falta',
       requiredLevel: 2,
       route: '/activity-syllabic',
       points: 100,
