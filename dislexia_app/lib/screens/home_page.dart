@@ -468,6 +468,10 @@ class _HomePageState extends State<HomePage> {
     final Color color;
 
     switch (activity.id) {
+      case Activities.vowelsConsonantsId:
+        icon = Icons.spellcheck;
+        color = Colors.teal;
+        break;
       case Activities.recognizeLettersId:
         icon = Icons.font_download;
         color = Colors.purple;

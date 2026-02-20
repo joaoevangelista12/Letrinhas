@@ -114,10 +114,10 @@ class FirestoreService {
       }
 
       // 3. CALCULA NÍVEL BASEADO NO TOTAL DE PONTOS (bidirecional)
-      // Level 1: 0-99, Level 2: 100-199, Level 3: 200-299, Level 4: 300+
-      // Nível máximo = 4 (temos apenas 4 atividades)
+      // Level 1: 0-99, Level 2: 100-199, Level 3: 200-299, Level 4: 300-399, Level 5: 400+
+      // Nível máximo = 5 (temos 5 atividades)
       int newLevel = (newTotalPoints ~/ 100) + 1;
-      if (newLevel > 4) newLevel = 4;
+      if (newLevel > 5) newLevel = 5;
 
       // 4. CALCULA PROGRESSO DENTRO DO NÍVEL (0-99)
       final int newProgress = newTotalPoints % 100;

@@ -10,6 +10,7 @@ import 'screens/splash_page.dart';
 import 'screens/login_page.dart';
 import 'screens/register_page.dart';
 import 'screens/home_page.dart';
+import 'screens/activity_vowels_consonants.dart';
 import 'screens/activity_recognize_letters.dart';
 import 'screens/activity_syllabic.dart';
 import 'screens/activity_form_word.dart';
@@ -112,6 +113,10 @@ class _DislexiaAppState extends State<DislexiaApp> {
         '/home': (context) => const HomePage(),
 
         // Atividades protegidas por nível (sistema de progressão)
+        '/activity-vowels-consonants': (context) => const ProtectedActivity(
+              activityId: Activities.vowelsConsonantsId,
+              child: ActivityVowelsConsonants(),
+            ),
         '/activity-recognize-letters': (context) => const ProtectedActivity(
               activityId: Activities.recognizeLettersId,
               child: ActivityRecognizeLetters(),

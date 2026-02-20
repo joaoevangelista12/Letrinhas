@@ -29,6 +29,7 @@ class ActivityModel {
 /// IMPORTANTE: Esta é a fonte de verdade para atividades e níveis
 class Activities {
   // IDs das atividades (imutáveis)
+  static const String vowelsConsonantsId = 'vowels-consonants';
   static const String recognizeLettersId = 'recognize-letters';
   static const String syllabicId = 'syllabic';
   static const String formWordId = 'form-word';
@@ -37,10 +38,18 @@ class Activities {
   /// Lista de todas as atividades
   static const List<ActivityModel> all = [
     ActivityModel(
+      id: vowelsConsonantsId,
+      name: 'Vogais e Consoantes',
+      description: 'Identifique vogais e consoantes do alfabeto',
+      requiredLevel: 1,
+      route: '/activity-vowels-consonants',
+      points: 100,
+    ),
+    ActivityModel(
       id: recognizeLettersId,
       name: 'Reconhecendo Letras',
       description: 'Identifique a primeira letra da palavra',
-      requiredLevel: 1,
+      requiredLevel: 2,
       route: '/activity-recognize-letters',
       points: 100,
     ),
@@ -48,7 +57,7 @@ class Activities {
       id: syllabicId,
       name: 'Complete a Palavra',
       description: 'Complete a palavra com a letra que falta',
-      requiredLevel: 2,
+      requiredLevel: 3,
       route: '/activity-syllabic',
       points: 100,
     ),
@@ -56,7 +65,7 @@ class Activities {
       id: formWordId,
       name: 'Formar Palavra com Sílabas',
       description: 'Junte as sílabas para formar a palavra da imagem',
-      requiredLevel: 3,
+      requiredLevel: 4,
       route: '/activity-form-word',
       points: 100,
     ),
@@ -64,7 +73,7 @@ class Activities {
       id: matchImageId,
       name: 'Relacionar Palavra com Imagem',
       description: 'Escolha a palavra correta para a imagem mostrada',
-      requiredLevel: 4,
+      requiredLevel: 5,
       route: '/activity-match-image',
       points: 100,
     ),
