@@ -11,8 +11,7 @@ import '../utils/completion_feedback.dart';
 import '../providers/accessibility_provider.dart';
 
 /// Atividade 2: Complete a palavra com a letra que falta
-/// Mostra imagem + palavra com lacuna + 4 opções de letras
-/// 5 questões, +20 acerto, -10 erro, sem segunda tentativa
+/// 5 questões sorteadas de um banco de 30 — palavra com lacuna + 4 opções embaralhadas
 class ActivitySyllabic extends StatefulWidget {
   const ActivitySyllabic({super.key});
 
@@ -27,8 +26,8 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
 
-  // Questões: emoji, palavra completa, índice da letra faltando, opções
-  final List<Map<String, dynamic>> _questions = [
+  // Banco com 30 questões: emoji, palavra completa, índice da letra faltando, opções
+  static const List<Map<String, dynamic>> _questionBank = [
     {
       'emoji': '🌸',
       'word': 'FLOR',
@@ -64,7 +63,184 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
       'correct': 'O',
       'options': ['O', 'A', 'U', 'E'],
     },
+    {
+      'emoji': '🪑',
+      'word': 'MESA',
+      'missingIndex': 0,
+      'correct': 'M',
+      'options': ['M', 'N', 'T', 'L'],
+    },
+    {
+      'emoji': '🔥',
+      'word': 'FOGO',
+      'missingIndex': 1,
+      'correct': 'O',
+      'options': ['O', 'A', 'E', 'U'],
+    },
+    {
+      'emoji': '🐺',
+      'word': 'LOBO',
+      'missingIndex': 2,
+      'correct': 'B',
+      'options': ['B', 'D', 'P', 'V'],
+    },
+    {
+      'emoji': '🏞️',
+      'word': 'LAGO',
+      'missingIndex': 3,
+      'correct': 'O',
+      'options': ['O', 'A', 'U', 'E'],
+    },
+    {
+      'emoji': '🕯️',
+      'word': 'VELA',
+      'missingIndex': 1,
+      'correct': 'E',
+      'options': ['E', 'A', 'I', 'O'],
+    },
+    {
+      'emoji': '🔔',
+      'word': 'SINO',
+      'missingIndex': 0,
+      'correct': 'S',
+      'options': ['S', 'Z', 'C', 'N'],
+    },
+    {
+      'emoji': '🎂',
+      'word': 'BOLO',
+      'missingIndex': 2,
+      'correct': 'L',
+      'options': ['L', 'R', 'N', 'M'],
+    },
+    {
+      'emoji': '🎲',
+      'word': 'DADO',
+      'missingIndex': 1,
+      'correct': 'A',
+      'options': ['A', 'E', 'I', 'O'],
+    },
+    {
+      'emoji': '🐭',
+      'word': 'RATO',
+      'missingIndex': 0,
+      'correct': 'R',
+      'options': ['R', 'T', 'N', 'L'],
+    },
+    {
+      'emoji': '🍇',
+      'word': 'UVAS',
+      'missingIndex': 1,
+      'correct': 'V',
+      'options': ['V', 'B', 'D', 'F'],
+    },
+    {
+      'emoji': '📺',
+      'word': 'TELA',
+      'missingIndex': 3,
+      'correct': 'A',
+      'options': ['A', 'E', 'O', 'U'],
+    },
+    {
+      'emoji': '❄️',
+      'word': 'NEVE',
+      'missingIndex': 0,
+      'correct': 'N',
+      'options': ['N', 'M', 'L', 'R'],
+    },
+    {
+      'emoji': '🥤',
+      'word': 'COPO',
+      'missingIndex': 3,
+      'correct': 'O',
+      'options': ['O', 'A', 'E', 'U'],
+    },
+    {
+      'emoji': '👜',
+      'word': 'MALA',
+      'missingIndex': 1,
+      'correct': 'A',
+      'options': ['A', 'E', 'I', 'O'],
+    },
+    {
+      'emoji': '🔪',
+      'word': 'FACA',
+      'missingIndex': 2,
+      'correct': 'C',
+      'options': ['C', 'S', 'Z', 'T'],
+    },
+    {
+      'emoji': '🍋',
+      'word': 'LIMA',
+      'missingIndex': 0,
+      'correct': 'L',
+      'options': ['L', 'N', 'M', 'T'],
+    },
+    {
+      'emoji': '☕',
+      'word': 'BULE',
+      'missingIndex': 3,
+      'correct': 'E',
+      'options': ['E', 'A', 'I', 'O'],
+    },
+    {
+      'emoji': '🐢',
+      'word': 'TOCA',
+      'missingIndex': 2,
+      'correct': 'C',
+      'options': ['C', 'S', 'Z', 'T'],
+    },
+    {
+      'emoji': '🚀',
+      'word': 'NAVE',
+      'missingIndex': 1,
+      'correct': 'A',
+      'options': ['A', 'E', 'I', 'O'],
+    },
+    {
+      'emoji': '🎳',
+      'word': 'ROLE',
+      'missingIndex': 0,
+      'correct': 'R',
+      'options': ['R', 'T', 'N', 'L'],
+    },
+    {
+      'emoji': '🦁',
+      'word': 'PELE',
+      'missingIndex': 1,
+      'correct': 'E',
+      'options': ['E', 'A', 'I', 'O'],
+    },
+    {
+      'emoji': '🐦',
+      'word': 'BICO',
+      'missingIndex': 2,
+      'correct': 'C',
+      'options': ['C', 'S', 'Z', 'T'],
+    },
+    {
+      'emoji': '😨',
+      'word': 'MEDO',
+      'missingIndex': 0,
+      'correct': 'M',
+      'options': ['M', 'N', 'L', 'T'],
+    },
+    {
+      'emoji': '🌿',
+      'word': 'VIDA',
+      'missingIndex': 3,
+      'correct': 'A',
+      'options': ['A', 'E', 'O', 'U'],
+    },
+    {
+      'emoji': '👆',
+      'word': 'DEDO',
+      'missingIndex': 2,
+      'correct': 'D',
+      'options': ['D', 'T', 'B', 'G'],
+    },
   ];
+
+  late List<Map<String, dynamic>> _questions;
 
   int _currentQuestionIndex = 0;
   String? _selectedOption;
@@ -93,6 +269,13 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
       parent: _shakeController,
       curve: Curves.easeInOut,
     ));
+
+    // Embaralha o banco e seleciona 5 questões; embaralha as alternativas de cada uma
+    final shuffled = List<Map<String, dynamic>>.from(_questionBank)..shuffle();
+    _questions = shuffled.take(5).map((q) {
+      final opts = List<String>.from(q['options'])..shuffle();
+      return {...q, 'options': opts};
+    }).toList();
   }
 
   @override

@@ -11,8 +11,7 @@ import '../utils/completion_feedback.dart';
 import '../providers/accessibility_provider.dart';
 
 /// Atividade: Relacionar Palavra com Imagem
-/// Mostra um emoji e 4 opções de palavras. O usuário deve escolher a palavra correta.
-/// 5 questões, +20 pontos por acerto, -10 por erro.
+/// 5 questões sorteadas de um banco de 30 — alternativas embaralhadas a cada sessão.
 class ActivityMatchImage extends StatefulWidget {
   const ActivityMatchImage({super.key});
 
@@ -27,34 +26,162 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
 
-  // Questões da atividade
-  final List<_Question> _questions = [
-    _Question(
+  // Banco com 30 questões
+  static const List<_QuestionData> _questionBank = [
+    _QuestionData(
       emoji: '\u{1F436}',
       correct: 'CACHORRO',
       options: ['CACHORRO', 'CAVALO', 'COELHO', 'CAMELO'],
     ),
-    _Question(
+    _QuestionData(
       emoji: '\u{1F319}',
       correct: 'LUA',
       options: ['LUA', 'SOL', 'CÉU', 'MAR'],
     ),
-    _Question(
+    _QuestionData(
       emoji: '\u{1F34E}',
       correct: 'MAÇÃ',
       options: ['MAÇÃ', 'BANANA', 'UVA', 'PERA'],
     ),
-    _Question(
+    _QuestionData(
       emoji: '\u2708\uFE0F',
       correct: 'AVIÃO',
       options: ['AVIÃO', 'CARRO', 'BARCO', 'TREM'],
     ),
-    _Question(
+    _QuestionData(
       emoji: '\u{1F333}',
       correct: 'ÁRVORE',
       options: ['ÁRVORE', 'FLOR', 'FOLHA', 'GRAMA'],
     ),
+    _QuestionData(
+      emoji: '\u{1F431}',
+      correct: 'GATO',
+      options: ['GATO', 'LOBO', 'RAPOSA', 'LEÃO'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F3E0}',
+      correct: 'CASA',
+      options: ['CASA', 'PRÉDIO', 'LOJA', 'ESCOLA'],
+    ),
+    _QuestionData(
+      emoji: '\u26BD',
+      correct: 'BOLA',
+      options: ['BOLA', 'RAQUETE', 'BASTÃO', 'LUVA'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F34C}',
+      correct: 'BANANA',
+      options: ['BANANA', 'LARANJA', 'MANGA', 'ABACAXI'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F697}',
+      correct: 'CARRO',
+      options: ['CARRO', 'MOTO', 'CAMINHÃO', 'ÔNIBUS'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F338}',
+      correct: 'FLOR',
+      options: ['FLOR', 'FOLHA', 'GALHO', 'RAIZ'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F981}',
+      correct: 'LEÃO',
+      options: ['LEÃO', 'TIGRE', 'LEOPARDO', 'JAGUAR'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F41F}',
+      correct: 'PEIXE',
+      options: ['PEIXE', 'TUBARÃO', 'GOLFINHO', 'POLVO'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F355}',
+      correct: 'PIZZA',
+      options: ['PIZZA', 'HAMBÚRGUER', 'SANDUÍCHE', 'TACOS'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F4DA}',
+      correct: 'LIVRO',
+      options: ['LIVRO', 'CADERNO', 'REVISTA', 'JORNAL'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F3B8}',
+      correct: 'VIOLÃO',
+      options: ['VIOLÃO', 'GUITARRA', 'TECLADO', 'BATERIA'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F98B}',
+      correct: 'BORBOLETA',
+      options: ['BORBOLETA', 'ABELHA', 'MOSCA', 'VESPA'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F366}',
+      correct: 'SORVETE',
+      options: ['SORVETE', 'BOLO', 'TORTA', 'PUDIM'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F680}',
+      correct: 'FOGUETE',
+      options: ['FOGUETE', 'AVIÃO', 'HELICÓPTERO', 'BALÃO'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F995}',
+      correct: 'DINOSSAURO',
+      options: ['DINOSSAURO', 'CROCODILO', 'IGUANA', 'LAGARTO'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F383}',
+      correct: 'ABÓBORA',
+      options: ['ABÓBORA', 'CENOURA', 'TOMATE', 'BETERRABA'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F418}',
+      correct: 'ELEFANTE',
+      options: ['ELEFANTE', 'RINOCERONTE', 'HIPOPÓTAMO', 'GIRAFA'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F3D6}\uFE0F',
+      correct: 'PRAIA',
+      options: ['PRAIA', 'FLORESTA', 'DESERTO', 'MONTANHA'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F308}',
+      correct: 'ARCO-ÍRIS',
+      options: ['ARCO-ÍRIS', 'NUVEM', 'CHUVA', 'TROVÃO'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F370}',
+      correct: 'BOLO',
+      options: ['BOLO', 'TORTA', 'SORVETE', 'DONUT'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F986}',
+      correct: 'PATO',
+      options: ['PATO', 'GANSO', 'CISNE', 'PELICANO'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F422}',
+      correct: 'TARTARUGA',
+      options: ['TARTARUGA', 'JABUTI', 'LAGARTO', 'CAMALEÃO'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F33B}',
+      correct: 'GIRASSOL',
+      options: ['GIRASSOL', 'ROSA', 'TULIPA', 'ORQUÍDEA'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F347}',
+      correct: 'UVA',
+      options: ['UVA', 'AMORA', 'FRAMBOESA', 'MORANGO'],
+    ),
+    _QuestionData(
+      emoji: '\u{1F511}',
+      correct: 'CHAVE',
+      options: ['CHAVE', 'CADEADO', 'PORTA', 'FECHADURA'],
+    ),
   ];
+
+  // Questões da sessão (5 sorteadas e com alternativas embaralhadas)
+  late List<_Question> _questions;
 
   // Estado da atividade
   int _currentQuestion = 0;
@@ -86,6 +213,13 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
       parent: _shakeController,
       curve: Curves.easeInOut,
     ));
+
+    // Embaralha o banco, seleciona 5, embaralha alternativas de cada uma
+    final shuffled = List<_QuestionData>.from(_questionBank)..shuffle();
+    _questions = shuffled.take(5).map((data) {
+      final opts = List<String>.from(data.options)..shuffle();
+      return _Question(emoji: data.emoji, correct: data.correct, options: opts);
+    }).toList();
   }
 
   @override
@@ -324,7 +458,7 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
       children: [
         // Indicador de questão
         Text(
-          'Questão ${_currentQuestion + 1} de 5',
+          'Questão ${_currentQuestion + 1} de ${_questions.length}',
           style: TextStyle(
             fontSize: 16 * accessibility.fontSize,
             fontWeight: FontWeight.bold,
@@ -465,7 +599,20 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
   }
 }
 
-/// Modelo de dados para cada questão
+/// Dados imutáveis do banco de questões
+class _QuestionData {
+  final String emoji;
+  final String correct;
+  final List<String> options;
+
+  const _QuestionData({
+    required this.emoji,
+    required this.correct,
+    required this.options,
+  });
+}
+
+/// Modelo de dados para cada questão da sessão (alternativas já embaralhadas)
 class _Question {
   final String emoji;
   final String correct;

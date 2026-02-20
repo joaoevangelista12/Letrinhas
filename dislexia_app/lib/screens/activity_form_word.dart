@@ -11,7 +11,7 @@ import '../utils/completion_feedback.dart';
 import '../providers/accessibility_provider.dart';
 
 /// Activity: Formar Palavra com Silabas
-/// Usuário toca nas sílabas na ordem correta para formar a palavra mostrada por um emoji
+/// 5 questões sorteadas de um banco de 30 — sílabas embaralhadas dinamicamente
 class ActivityFormWord extends StatefulWidget {
   const ActivityFormWord({super.key});
 
@@ -26,39 +26,162 @@ class _ActivityFormWordState extends State<ActivityFormWord>
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
 
-  // Lista de questões: emoji, palavra correta, sílabas embaralhadas
-  final List<Map<String, dynamic>> _questions = [
+  // Banco com 30 questões: emoji, palavra correta, sílabas na ordem correta
+  // As sílabas são embaralhadas dinamicamente em _initializeQuestion()
+  static const List<Map<String, dynamic>> _questionBank = [
     {
-      'emoji': '\u{1F3E0}',
+      'emoji': '🏠',
       'word': 'CASA',
       'syllables': ['CA', 'SA'],
-      'available': ['SA', 'CA'],
     },
     {
-      'emoji': '\u{1F431}',
+      'emoji': '🐱',
       'word': 'GATO',
       'syllables': ['GA', 'TO'],
-      'available': ['TO', 'GA'],
     },
     {
-      'emoji': '\u26BD',
+      'emoji': '⚽',
       'word': 'BOLA',
       'syllables': ['BO', 'LA'],
-      'available': ['LA', 'BO'],
     },
     {
-      'emoji': '\u{1F45E}',
+      'emoji': '👟',
       'word': 'SAPATO',
       'syllables': ['SA', 'PA', 'TO'],
-      'available': ['TO', 'SA', 'PA'],
     },
     {
-      'emoji': '\u{1F34C}',
+      'emoji': '🍌',
       'word': 'BANANA',
       'syllables': ['BA', 'NA', 'NA'],
-      'available': ['NA', 'BA', 'NA'],
+    },
+    {
+      'emoji': '🪑',
+      'word': 'MESA',
+      'syllables': ['ME', 'SA'],
+    },
+    {
+      'emoji': '🦆',
+      'word': 'PATO',
+      'syllables': ['PA', 'TO'],
+    },
+    {
+      'emoji': '🕯️',
+      'word': 'VELA',
+      'syllables': ['VE', 'LA'],
+    },
+    {
+      'emoji': '🦭',
+      'word': 'FOCA',
+      'syllables': ['FO', 'CA'],
+    },
+    {
+      'emoji': '🐺',
+      'word': 'LOBO',
+      'syllables': ['LO', 'BO'],
+    },
+    {
+      'emoji': '🎂',
+      'word': 'BOLO',
+      'syllables': ['BO', 'LO'],
+    },
+    {
+      'emoji': '🛋️',
+      'word': 'SOFA',
+      'syllables': ['SO', 'FA'],
+    },
+    {
+      'emoji': '🛏️',
+      'word': 'CAMA',
+      'syllables': ['CA', 'MA'],
+    },
+    {
+      'emoji': '⚙️',
+      'word': 'RODA',
+      'syllables': ['RO', 'DA'],
+    },
+    {
+      'emoji': '🐴',
+      'word': 'CAVALO',
+      'syllables': ['CA', 'VA', 'LO'],
+    },
+    {
+      'emoji': '🐒',
+      'word': 'MACACO',
+      'syllables': ['MA', 'CA', 'CO'],
+    },
+    {
+      'emoji': '🏫',
+      'word': 'ESCOLA',
+      'syllables': ['ES', 'CO', 'LA'],
+    },
+    {
+      'emoji': '🪟',
+      'word': 'JANELA',
+      'syllables': ['JA', 'NE', 'LA'],
+    },
+    {
+      'emoji': '🐯',
+      'word': 'TIGRE',
+      'syllables': ['TI', 'GRE'],
+    },
+    {
+      'emoji': '🦓',
+      'word': 'ZEBRA',
+      'syllables': ['ZE', 'BRA'],
+    },
+    {
+      'emoji': '🍅',
+      'word': 'TOMATE',
+      'syllables': ['TO', 'MA', 'TE'],
+    },
+    {
+      'emoji': '🐔',
+      'word': 'GALINHA',
+      'syllables': ['GA', 'LI', 'NHA'],
+    },
+    {
+      'emoji': '🐰',
+      'word': 'COELHO',
+      'syllables': ['CO', 'E', 'LHO'],
+    },
+    {
+      'emoji': '🥕',
+      'word': 'CENOURA',
+      'syllables': ['CE', 'NOU', 'RA'],
+    },
+    {
+      'emoji': '🦋',
+      'word': 'BORBOLETA',
+      'syllables': ['BOR', 'BO', 'LE', 'TA'],
+    },
+    {
+      'emoji': '🐢',
+      'word': 'TARTARUGA',
+      'syllables': ['TAR', 'TA', 'RU', 'GA'],
+    },
+    {
+      'emoji': '⛵',
+      'word': 'NAVIO',
+      'syllables': ['NA', 'VI', 'O'],
+    },
+    {
+      'emoji': '🥢',
+      'word': 'PALITO',
+      'syllables': ['PA', 'LI', 'TO'],
+    },
+    {
+      'emoji': '🌻',
+      'word': 'GIRASSOL',
+      'syllables': ['GI', 'RAS', 'SOL'],
+    },
+    {
+      'emoji': '🐟',
+      'word': 'PEIXE',
+      'syllables': ['PEI', 'XE'],
     },
   ];
+
+  late List<Map<String, dynamic>> _questions;
 
   int _currentIndex = 0;
   List<String?> _slots = [];
@@ -88,6 +211,11 @@ class _ActivityFormWordState extends State<ActivityFormWord>
       parent: _shakeController,
       curve: Curves.easeInOut,
     ));
+
+    // Embaralha o banco e seleciona 5 questões
+    final shuffled = List<Map<String, dynamic>>.from(_questionBank)..shuffle();
+    _questions = shuffled.take(5).toList();
+
     _initializeQuestion();
   }
 
@@ -98,12 +226,12 @@ class _ActivityFormWordState extends State<ActivityFormWord>
     super.dispose();
   }
 
-  /// Inicializa a questão atual
+  /// Inicializa a questão atual — embaralha as sílabas dinamicamente
   void _initializeQuestion() {
     final question = _currentQuestion;
-    final syllableCount = (question['syllables'] as List<String>).length;
-    _slots = List.filled(syllableCount, null);
-    _availableSyllables = List<String>.from(question['available']);
+    final syllables = List<String>.from(question['syllables'] as List<String>);
+    _slots = List.filled(syllables.length, null);
+    _availableSyllables = syllables..shuffle();
   }
 
   /// Obtém questão atual

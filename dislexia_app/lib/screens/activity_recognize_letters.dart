@@ -11,7 +11,7 @@ import '../utils/completion_feedback.dart';
 import '../providers/accessibility_provider.dart';
 
 /// Atividade: Reconhecendo Letras
-/// 5 questões — mostra uma palavra e o usuário identifica a primeira letra.
+/// 5 questões sorteadas de um banco de 30 — identifica letras de tipos variados.
 class ActivityRecognizeLetters extends StatefulWidget {
   const ActivityRecognizeLetters({super.key});
 
@@ -27,38 +27,225 @@ class _ActivityRecognizeLettersState extends State<ActivityRecognizeLetters>
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
 
-  final List<Map<String, dynamic>> _questions = [
+  // Banco completo com 30 questões — tipos variados
+  static const List<Map<String, dynamic>> _questionBank = [
+    // --- Primeira letra (10 questões) ---
     {
       'word': 'BOLA',
       'emoji': '⚽',
+      'question': 'Qual é a primeira letra?',
       'correct': 'B',
       'options': ['B', 'L', 'M', 'C'],
     },
     {
       'word': 'CASA',
       'emoji': '🏠',
+      'question': 'Qual é a primeira letra?',
       'correct': 'C',
       'options': ['A', 'S', 'C', 'H'],
     },
     {
       'word': 'PATO',
       'emoji': '🦆',
+      'question': 'Qual é a primeira letra?',
       'correct': 'P',
       'options': ['T', 'P', 'D', 'B'],
     },
     {
       'word': 'MESA',
       'emoji': '🪑',
+      'question': 'Qual é a primeira letra?',
       'correct': 'M',
       'options': ['N', 'E', 'S', 'M'],
     },
     {
       'word': 'DADO',
       'emoji': '🎲',
+      'question': 'Qual é a primeira letra?',
       'correct': 'D',
       'options': ['B', 'G', 'D', 'A'],
     },
+    {
+      'word': 'FACA',
+      'emoji': '🔪',
+      'question': 'Qual é a primeira letra?',
+      'correct': 'F',
+      'options': ['F', 'A', 'C', 'K'],
+    },
+    {
+      'word': 'LOBO',
+      'emoji': '🐺',
+      'question': 'Qual é a primeira letra?',
+      'correct': 'L',
+      'options': ['G', 'A', 'L', 'O'],
+    },
+    {
+      'word': 'NAVIO',
+      'emoji': '⛵',
+      'question': 'Qual é a primeira letra?',
+      'correct': 'N',
+      'options': ['N', 'V', 'A', 'I'],
+    },
+    {
+      'word': 'RATO',
+      'emoji': '🐭',
+      'question': 'Qual é a primeira letra?',
+      'correct': 'R',
+      'options': ['T', 'R', 'A', 'O'],
+    },
+    {
+      'word': 'TERRA',
+      'emoji': '🌍',
+      'question': 'Qual é a primeira letra?',
+      'correct': 'T',
+      'options': ['E', 'R', 'T', 'A'],
+    },
+    // --- Última letra (8 questões) ---
+    {
+      'word': 'BOLO',
+      'emoji': '🎂',
+      'question': 'Qual é a última letra?',
+      'correct': 'O',
+      'options': ['O', 'B', 'L', 'A'],
+    },
+    {
+      'word': 'AMOR',
+      'emoji': '❤️',
+      'question': 'Qual é a última letra?',
+      'correct': 'R',
+      'options': ['A', 'M', 'O', 'R'],
+    },
+    {
+      'word': 'AZUL',
+      'emoji': '🔵',
+      'question': 'Qual é a última letra?',
+      'correct': 'L',
+      'options': ['A', 'Z', 'U', 'L'],
+    },
+    {
+      'word': 'FLOR',
+      'emoji': '🌸',
+      'question': 'Qual é a última letra?',
+      'correct': 'R',
+      'options': ['F', 'L', 'O', 'R'],
+    },
+    {
+      'word': 'MEL',
+      'emoji': '🍯',
+      'question': 'Qual é a última letra?',
+      'correct': 'L',
+      'options': ['M', 'E', 'L', 'A'],
+    },
+    {
+      'word': 'SOL',
+      'emoji': '☀️',
+      'question': 'Qual é a última letra?',
+      'correct': 'L',
+      'options': ['S', 'O', 'L', 'R'],
+    },
+    {
+      'word': 'MAR',
+      'emoji': '🌊',
+      'question': 'Qual é a última letra?',
+      'correct': 'R',
+      'options': ['M', 'A', 'R', 'T'],
+    },
+    {
+      'word': 'CÉU',
+      'emoji': '⛅',
+      'question': 'Qual é a última letra?',
+      'correct': 'U',
+      'options': ['C', 'É', 'U', 'A'],
+    },
+    // --- Primeira vogal (6 questões) ---
+    {
+      'word': 'GATO',
+      'emoji': '🐱',
+      'question': 'Qual é a primeira vogal?',
+      'correct': 'A',
+      'options': ['A', 'G', 'T', 'O'],
+    },
+    {
+      'word': 'BOLA',
+      'emoji': '⚽',
+      'question': 'Qual é a primeira vogal?',
+      'correct': 'O',
+      'options': ['O', 'B', 'L', 'A'],
+    },
+    {
+      'word': 'CHUVA',
+      'emoji': '🌧️',
+      'question': 'Qual é a primeira vogal?',
+      'correct': 'U',
+      'options': ['C', 'H', 'U', 'A'],
+    },
+    {
+      'word': 'FLOR',
+      'emoji': '🌸',
+      'question': 'Qual é a primeira vogal?',
+      'correct': 'O',
+      'options': ['F', 'L', 'O', 'R'],
+    },
+    {
+      'word': 'TREM',
+      'emoji': '🚃',
+      'question': 'Qual é a primeira vogal?',
+      'correct': 'E',
+      'options': ['T', 'R', 'E', 'M'],
+    },
+    {
+      'word': 'PRATO',
+      'emoji': '🍽️',
+      'question': 'Qual é a primeira vogal?',
+      'correct': 'A',
+      'options': ['P', 'R', 'A', 'T'],
+    },
+    // --- Primeira consoante (6 questões) ---
+    {
+      'word': 'ABELHA',
+      'emoji': '🐝',
+      'question': 'Qual é a primeira consoante?',
+      'correct': 'B',
+      'options': ['A', 'B', 'L', 'E'],
+    },
+    {
+      'word': 'ESCOLA',
+      'emoji': '🏫',
+      'question': 'Qual é a primeira consoante?',
+      'correct': 'S',
+      'options': ['E', 'S', 'C', 'O'],
+    },
+    {
+      'word': 'ILHA',
+      'emoji': '🏝️',
+      'question': 'Qual é a primeira consoante?',
+      'correct': 'L',
+      'options': ['I', 'L', 'H', 'A'],
+    },
+    {
+      'word': 'OURIÇO',
+      'emoji': '🦔',
+      'question': 'Qual é a primeira consoante?',
+      'correct': 'R',
+      'options': ['O', 'R', 'U', 'I'],
+    },
+    {
+      'word': 'ARARA',
+      'emoji': '🦜',
+      'question': 'Qual é a primeira consoante?',
+      'correct': 'R',
+      'options': ['A', 'R', 'V', 'L'],
+    },
+    {
+      'word': 'OVELHA',
+      'emoji': '🐑',
+      'question': 'Qual é a primeira consoante?',
+      'correct': 'V',
+      'options': ['O', 'V', 'L', 'E'],
+    },
   ];
+
+  late List<Map<String, dynamic>> _questions;
 
   int _currentQuestionIndex = 0;
   String? _selectedOption;
@@ -87,6 +274,13 @@ class _ActivityRecognizeLettersState extends State<ActivityRecognizeLetters>
       parent: _shakeController,
       curve: Curves.easeInOut,
     ));
+
+    // Embaralha o banco e seleciona 5 questões; embaralha as alternativas de cada uma
+    final shuffled = List<Map<String, dynamic>>.from(_questionBank)..shuffle();
+    _questions = shuffled.take(5).map((q) {
+      final opts = List<String>.from(q['options'])..shuffle();
+      return {...q, 'options': opts};
+    }).toList();
   }
 
   @override
@@ -225,7 +419,7 @@ class _ActivityRecognizeLettersState extends State<ActivityRecognizeLetters>
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Qual é a primeira letra?',
+                    _currentQuestion['question'],
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontSize: 20 * accessibilityProvider.fontSize,
                         ),
