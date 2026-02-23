@@ -107,6 +107,7 @@ class ActivityProgress {
   final DateTime completedAt;
   final int attempts;
   final double accuracy; // 0.0 a 1.0
+  final int durationSeconds; // Duração da sessão em segundos (uso interno)
 
   ActivityProgress({
     required this.activityId,
@@ -115,6 +116,7 @@ class ActivityProgress {
     required this.completedAt,
     this.attempts = 1,
     this.accuracy = 1.0,
+    this.durationSeconds = 0,
   });
 
   /// Converte para Map para salvar no Firestore
@@ -126,6 +128,7 @@ class ActivityProgress {
       'completedAt': Timestamp.fromDate(completedAt),
       'attempts': attempts,
       'accuracy': accuracy,
+      'durationSeconds': durationSeconds,
     };
   }
 
@@ -138,6 +141,7 @@ class ActivityProgress {
       completedAt: (data['completedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       attempts: data['attempts'] ?? 1,
       accuracy: (data['accuracy'] ?? 1.0).toDouble(),
+      durationSeconds: (data['durationSeconds'] as num?)?.toInt() ?? 0,
     );
   }
 }
