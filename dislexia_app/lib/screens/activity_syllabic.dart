@@ -64,7 +64,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
       'options': ['O', 'A', 'U', 'E'],
     },
     {
-      'emoji': '🪑',
+      'emoji': '🍽️',
       'word': 'MESA',
       'missingIndex': 0,
       'correct': 'M',
@@ -155,7 +155,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
       'options': ['O', 'A', 'E', 'U'],
     },
     {
-      'emoji': '👜',
+      'emoji': '🧳',
       'word': 'MALA',
       'missingIndex': 1,
       'correct': 'A',
@@ -176,7 +176,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
       'options': ['L', 'N', 'M', 'T'],
     },
     {
-      'emoji': '☕',
+      'emoji': '🫖',
       'word': 'BULE',
       'missingIndex': 3,
       'correct': 'E',
@@ -184,10 +184,10 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
     },
     {
       'emoji': '🐢',
-      'word': 'TOCA',
-      'missingIndex': 2,
-      'correct': 'C',
-      'options': ['C', 'S', 'Z', 'T'],
+      'word': 'CASCO',
+      'missingIndex': 1,
+      'correct': 'A',
+      'options': ['A', 'E', 'I', 'O'],
     },
     {
       'emoji': '🚀',
@@ -198,14 +198,14 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
     },
     {
       'emoji': '🎳',
-      'word': 'ROLE',
+      'word': 'PINO',
       'missingIndex': 0,
-      'correct': 'R',
-      'options': ['R', 'T', 'N', 'L'],
+      'correct': 'P',
+      'options': ['P', 'B', 'T', 'G'],
     },
     {
       'emoji': '🦁',
-      'word': 'PELE',
+      'word': 'LEÃO',
       'missingIndex': 1,
       'correct': 'E',
       'options': ['E', 'A', 'I', 'O'],
@@ -226,7 +226,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
     },
     {
       'emoji': '🌿',
-      'word': 'VIDA',
+      'word': 'ERVA',
       'missingIndex': 3,
       'correct': 'A',
       'options': ['A', 'E', 'O', 'U'],

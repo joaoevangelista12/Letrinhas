@@ -53,7 +53,7 @@ class _ActivityRecognizeLettersState extends State<ActivityRecognizeLetters>
     },
     {
       'word': 'MESA',
-      'emoji': '🪑',
+      'emoji': '🍽️',
       'question': 'Qual é a primeira letra?',
       'correct': 'M',
       'options': ['N', 'E', 'S', 'M'],

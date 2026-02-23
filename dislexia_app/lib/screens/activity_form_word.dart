@@ -55,7 +55,7 @@ class _ActivityFormWordState extends State<ActivityFormWord>
       'syllables': ['BA', 'NA', 'NA'],
     },
     {
-      'emoji': '🪑',
+      'emoji': '🍽️',
       'word': 'MESA',
       'syllables': ['ME', 'SA'],
     },
