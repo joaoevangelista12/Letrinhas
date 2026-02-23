@@ -3,10 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
 import '../main.dart';
 import '../services/firestore_service.dart';
+import '../services/report_service.dart';
 import '../models/user_model.dart';
 import '../models/activity_model.dart';
+import '../models/time_stats_model.dart';
 import '../providers/accessibility_provider.dart';
 
 /// Tela de Perfil e Progresso
@@ -23,6 +27,7 @@ class _ProfilePageState extends State<ProfilePage> {
   UserModel? _userData;
   List<ActivityProgress> _activityHistory = [];
   bool _isLoading = true;
+  bool _isGeneratingReport = false;
 
   // IDs válidos das atividades atuais (fonte de verdade: activity_model.dart)
   static final Set<String> _validActivityIds = Activities.all.map((a) => a.id).toSet();
@@ -110,6 +115,50 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  /// Gera e exibe o relatório de desempenho em PDF.
+  Future<void> _generateReport() async {
+    if (_userData == null || _isGeneratingReport) return;
+
+    setState(() => _isGeneratingReport = true);
+
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      List<TimeStatsModel> timeStats = [];
+
+      if (userProvider.uid != null) {
+        timeStats =
+            await _firestoreService.getAllTimeStats(userProvider.uid!);
+      }
+
+      final pdfBytes = await ReportService.generateReport(
+        user: _userData!,
+        activityHistory: _activityHistory,
+        timeStats: timeStats,
+      );
+
+      if (!mounted) return;
+
+      await Printing.layoutPdf(
+        onLayout: (_) async => pdfBytes,
+        name:
+            'Letrinhas_Relatorio_${DateFormat('yyyy-MM-dd').format(DateTime.now())}.pdf',
+        format: PdfPageFormat.a4,
+      );
+    } catch (e) {
+      debugPrint('Erro ao gerar relatório: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao gerar relatório. Tente novamente.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isGeneratingReport = false);
+    }
+  }
+
   /// Verifica se atividade foi completada
   ActivityProgress? _getActivityProgress(String activityId) {
     try {
@@ -131,6 +180,28 @@ class _ProfilePageState extends State<ProfilePage> {
         title: const Text('Meu Perfil'),
         centerTitle: true,
       ),
+      floatingActionButton: _userData != null
+          ? FloatingActionButton.extended(
+              onPressed: _isGeneratingReport ? null : _generateReport,
+              icon: _isGeneratingReport
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.picture_as_pdf),
+              label: Text(
+                _isGeneratingReport ? 'Gerando...' : 'Gerar Relatorio',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: _isGeneratingReport
+                  ? Colors.grey
+                  : Theme.of(context).primaryColor,
+            )
+          : null,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
@@ -168,6 +239,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         const SizedBox(height: 16),
                         _buildActivityHistory(),
                       ],
+
+                      // Espaço extra para o FAB não cobrir conteúdo
+                      const SizedBox(height: 80),
                     ],
                   ),
                 ),
