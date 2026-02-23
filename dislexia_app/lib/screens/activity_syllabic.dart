@@ -6,6 +6,7 @@ import 'package:confetti/confetti.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../services/firestore_service.dart';
+import '../services/time_tracking_service.dart';
 import '../utils/sound_helper.dart';
 import '../utils/completion_feedback.dart';
 import '../providers/accessibility_provider.dart';
@@ -22,6 +23,7 @@ class ActivitySyllabic extends StatefulWidget {
 class _ActivitySyllabicState extends State<ActivitySyllabic>
     with SingleTickerProviderStateMixin {
   final FirestoreService _firestoreService = FirestoreService();
+  final TimeTrackingService _timeTracker = TimeTrackingService();
   late ConfettiController _confettiController;
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
@@ -276,6 +278,9 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
       final opts = List<String>.from(q['options'])..shuffle();
       return {...q, 'options': opts};
     }).toList();
+
+    // Inicia contagem de tempo da sessão (invisível para a criança)
+    _timeTracker.startSession();
   }
 
   @override
@@ -338,6 +343,8 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
 
   Future<void> _saveProgress() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
+    // Para o cronômetro e obtém a duração da sessão em segundos
+    final sessionDuration = _timeTracker.stopSession();
 
     if (userProvider.uid != null) {
       try {
@@ -348,6 +355,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
           points: _score,
           attempts: _totalAttempts,
           accuracy: _correctCount / 5,
+          durationSeconds: sessionDuration,
         );
 
         final userData = await _firestoreService.getUser(userProvider.uid!);

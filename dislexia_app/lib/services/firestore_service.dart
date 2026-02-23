@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 import '../models/activity_model.dart';
+import '../models/time_stats_model.dart';
 
 /// Serviço para gerenciar operações do Firestore
 /// Centraliza todas as operações de banco de dados
@@ -14,6 +15,7 @@ class FirestoreService {
   // Nome da coleção de usuários
   static const String usersCollection = 'users';
   static const String activitiesCollection = 'activities';
+  static const String timeStatsCollection = 'time_stats';
 
   /// Cria ou atualiza documento do usuário no Firestore
   Future<void> createUser({
@@ -99,6 +101,7 @@ class FirestoreService {
     required int points,
     int attempts = 1,
     double accuracy = 1.0,
+    int durationSeconds = 0,
   }) async {
     try {
       // 1. BUSCA DADOS DO USUÁRIO
@@ -134,6 +137,7 @@ class FirestoreService {
         completedAt: now,
         attempts: attempts,
         accuracy: accuracy,
+        durationSeconds: durationSeconds,
       );
 
       // 6. ATUALIZA SUBCOLEÇÃO E DOCUMENTO DO USUÁRIO EM BATCH ATÔMICO
@@ -152,8 +156,114 @@ class FirestoreService {
       );
       batch.update(userRef, updateData);
       await batch.commit();
+
+      // 7. ATUALIZA ESTATÍSTICAS DE TEMPO (operação separada, não bloqueia pontuação)
+      await _updateTimeStats(
+        uid: uid,
+        activityId: activityId,
+        durationSeconds: durationSeconds,
+        score: points,
+        sessionDate: now,
+      );
     } catch (e) {
       throw Exception('Erro ao registrar atividade: $e');
+    }
+  }
+
+  /// Atualiza as estatísticas de tempo para uma atividade.
+  /// Opera na subcoleção [time_stats] do usuário.
+  /// Mantém o histórico das sessões dos últimos 7 dias.
+  Future<void> _updateTimeStats({
+    required String uid,
+    required String activityId,
+    required int durationSeconds,
+    required int score,
+    required DateTime sessionDate,
+  }) async {
+    try {
+      final statsRef = _firestore
+          .collection(usersCollection)
+          .doc(uid)
+          .collection(timeStatsCollection)
+          .doc(activityId);
+
+      final newSessionEntry = {
+        'date': Timestamp.fromDate(sessionDate),
+        'durationSeconds': durationSeconds,
+        'score': score,
+      };
+
+      final statsDoc = await statsRef.get();
+
+      if (statsDoc.exists) {
+        final data = statsDoc.data()!;
+        final rawSessions =
+            (data['recentSessions'] as List<dynamic>?) ?? [];
+
+        // Mantém apenas sessões dos últimos 7 dias + adiciona a nova
+        final cutoff = sessionDate.subtract(const Duration(days: 7));
+        final updatedSessions = [
+          ...rawSessions
+              .cast<Map<String, dynamic>>()
+              .where((s) =>
+                  (s['date'] as Timestamp).toDate().isAfter(cutoff)),
+          newSessionEntry,
+        ];
+
+        await statsRef.update({
+          'lastSessionDuration': durationSeconds,
+          'totalAccumulatedTime': FieldValue.increment(durationSeconds),
+          'sessionCount': FieldValue.increment(1),
+          'lastSessionAt': Timestamp.fromDate(sessionDate),
+          'recentSessions': updatedSessions,
+        });
+      } else {
+        await statsRef.set({
+          'activityId': activityId,
+          'lastSessionDuration': durationSeconds,
+          'totalAccumulatedTime': durationSeconds,
+          'sessionCount': 1,
+          'lastSessionAt': Timestamp.fromDate(sessionDate),
+          'recentSessions': [newSessionEntry],
+        });
+      }
+    } catch (_) {
+      // Erro nas estatísticas de tempo não deve interromper o fluxo principal
+    }
+  }
+
+  /// Busca estatísticas de tempo de uma atividade específica para um usuário.
+  Future<TimeStatsModel?> getActivityTimeStats(
+      String uid, String activityId) async {
+    try {
+      final doc = await _firestore
+          .collection(usersCollection)
+          .doc(uid)
+          .collection(timeStatsCollection)
+          .doc(activityId)
+          .get();
+
+      if (!doc.exists) return null;
+      return TimeStatsModel.fromFirestore(doc.data()!);
+    } catch (e) {
+      throw Exception('Erro ao buscar estatísticas de tempo: $e');
+    }
+  }
+
+  /// Busca estatísticas de tempo de todas as atividades de um usuário.
+  Future<List<TimeStatsModel>> getAllTimeStats(String uid) async {
+    try {
+      final snapshot = await _firestore
+          .collection(usersCollection)
+          .doc(uid)
+          .collection(timeStatsCollection)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => TimeStatsModel.fromFirestore(doc.data()))
+          .toList();
+    } catch (e) {
+      throw Exception('Erro ao buscar estatísticas de tempo: $e');
     }
   }
 

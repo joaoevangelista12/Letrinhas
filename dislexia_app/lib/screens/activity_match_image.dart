@@ -6,6 +6,7 @@ import 'package:confetti/confetti.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../services/firestore_service.dart';
+import '../services/time_tracking_service.dart';
 import '../utils/sound_helper.dart';
 import '../utils/completion_feedback.dart';
 import '../providers/accessibility_provider.dart';
@@ -22,6 +23,7 @@ class ActivityMatchImage extends StatefulWidget {
 class _ActivityMatchImageState extends State<ActivityMatchImage>
     with SingleTickerProviderStateMixin {
   final FirestoreService _firestoreService = FirestoreService();
+  final TimeTrackingService _timeTracker = TimeTrackingService();
   late ConfettiController _confettiController;
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
@@ -220,6 +222,9 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
       final opts = List<String>.from(data.options)..shuffle();
       return _Question(emoji: data.emoji, correct: data.correct, options: opts);
     }).toList();
+
+    // Inicia contagem de tempo da sessão (invisível para a criança)
+    _timeTracker.startSession();
   }
 
   @override
@@ -276,6 +281,8 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
 
   /// Salva progresso da atividade no Firestore
   Future<void> _saveProgress() async {
+    // Para o cronômetro e obtém a duração da sessão em segundos
+    final sessionDuration = _timeTracker.stopSession();
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
 
@@ -287,6 +294,7 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
           points: _score,
           attempts: _totalAttempts,
           accuracy: _correctCount / 5,
+          durationSeconds: sessionDuration,
         );
 
         // Re-lê do Firestore para garantir valores corretos
