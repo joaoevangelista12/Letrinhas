@@ -37,6 +37,10 @@ dependencies:
   # Formatação de datas e números
   intl: ^0.19.0
 
+  # Geração de PDF para relatório de desempenho
+  pdf: ^3.11.1
+  printing: ^5.13.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
