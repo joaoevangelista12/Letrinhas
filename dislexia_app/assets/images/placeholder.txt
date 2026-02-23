@@ -1,0 +1,3 @@
+# Pasta de imagens
+# Adicione aqui as imagens usadas no app (formato PNG, JPG, etc.)
+# Exemplo: logo.png, atividade_imagem1.png, etc.

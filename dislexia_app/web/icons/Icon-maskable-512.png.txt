@@ -1,0 +1,2 @@
+# Placeholder for Icon-maskable-512.png
+# This is a placeholder file. Replace with actual 512x512 maskable PNG icon.

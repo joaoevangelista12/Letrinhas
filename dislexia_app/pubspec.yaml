@@ -1,0 +1,59 @@
+# arquivo: pubspec.yaml
+name: dislexia_app
+description: Aplicativo MVP para auxiliar pessoas com dislexia - TCC
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Gerenciamento de estado simples
+  provider: ^6.1.2
+
+  # Efeitos sonoros
+  audioplayers: ^6.1.0
+
+  # Animação de confete
+  confetti: ^0.7.0
+
+  # Ícones
+  cupertino_icons: ^1.0.8
+
+  # Firebase - versões mais recentes e estáveis
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
+
+  # Persistência de configurações
+  shared_preferences: ^2.3.3
+
+  # Fontes do Google (fallback se OpenDyslexic não estiver disponível)
+  google_fonts: ^6.2.1
+
+  # Formatação de datas e números
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Assets do aplicativo
+  assets:
+    - assets/images/
+    - assets/sounds/
+
+  # Fontes personalizadas - facilita leitura para disléxicos
+  fonts:
+    - family: OpenDyslexic
+      fonts:
+        - asset: assets/fonts/OpenDyslexic-Regular.ttf
+        - asset: assets/fonts/OpenDyslexic-Bold.ttf
+          weight: 700

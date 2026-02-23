@@ -1,0 +1,45 @@
+# arquivo: analysis_options.yaml
+# Configurações de análise estática do Flutter para garantir código limpo e sem erros
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "build/**"
+
+  errors:
+    # Permitir TODOs no código
+    todo: ignore
+    # Ignorar problemas com annotations específicas
+    invalid_annotation_target: ignore
+
+linter:
+  rules:
+    # Boas práticas ativadas
+    prefer_const_constructors: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_single_quotes: true
+    avoid_print: false  # Permitido para debug
+
+    # Null safety
+    unnecessary_null_checks: true
+    unnecessary_null_in_if_null_operators: true
+
+    # Código limpo
+    avoid_unnecessary_containers: true
+    sized_box_for_whitespace: true
+    sort_child_properties_last: true
+    use_key_in_widget_constructors: true
+
+    # Performance
+    prefer_const_declarations: true
+    prefer_final_fields: true
+    prefer_final_locals: true
+
+    # Legibilidade
+    always_declare_return_types: true
+    always_put_required_named_parameters_first: true
+    annotate_overrides: true
+    require_trailing_commas: true
