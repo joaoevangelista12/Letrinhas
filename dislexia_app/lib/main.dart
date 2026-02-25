@@ -34,9 +34,12 @@ void main() async {
 
   // Inicializa o Firebase usando firebase_options.dart
   // Detecta automaticamente a plataforma (Web, Android, iOS)
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // Guarda contra inicialização duplicada (hot restart + FirebaseInitProvider nativo)
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
 
   runApp(
     // MultiProvider para gerenciar múltiplos estados globalmente
