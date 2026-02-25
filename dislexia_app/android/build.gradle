@@ -4,3 +4,28 @@ allprojects {
         mavenCentral()
     }
 }
+
+// CRÍTICO: redireciona o diretório de build para fora de android/
+// Sem isto, o AGP gera o APK em android/build/app/…
+// mas o Flutter tool procura em build/app/outputs/flutter-apk/…
+// causando "Gradle build failed to produce an .apk file" mesmo com BUILD SUCCESSFUL.
+rootProject.layout.buildDirectory.set(
+    rootProject.layout.projectDirectory.dir('../build')
+)
+
+subprojects {
+    layout.buildDirectory.set(
+        rootProject.layout.buildDirectory.dir(project.name)
+    )
+}
+
+// Garante que :app seja avaliado antes dos subprojetos dependentes,
+// permitindo que o FlutterPlugin registre os hooks de cópia do APK na
+// ordem correta dentro do grafo de tasks do assembleDebug.
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.layout.buildDirectory
+}
