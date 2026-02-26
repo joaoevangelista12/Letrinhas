@@ -32,14 +32,20 @@ void main() async {
   // Garante que os bindings do Flutter estão inicializados
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicializa o Firebase usando firebase_options.dart
-  // Detecta automaticamente a plataforma (Web, Android, iOS)
-  // Guarda contra inicialização duplicada (hot restart + FirebaseInitProvider nativo)
-  if (Firebase.apps.isEmpty) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  }
+  // Inicializa o Firebase usando firebase_options.dart.
+  // Detecta automaticamente a plataforma (Web, Android, iOS).
+  //
+  // NÃO usa Firebase.apps.isEmpty como guarda: esse check é Dart-only e retorna
+  // true no hot-restart (a VM Dart é reiniciada), mesmo que o Firebase já esteja
+  // inicializado na camada nativa — causando o erro "duplicate-app".
+  //
+  // O FirebaseInitProvider nativo foi desabilitado em AndroidManifest.xml
+  // (tools:node="remove"), portanto este é o ÚNICO ponto de inicialização.
+  // firebase_core ^3.x trata o caso de re-inicialização no hot-restart de forma
+  // idempotente: retorna o FirebaseApp já existente em vez de lançar exceção.
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   runApp(
     // MultiProvider para gerenciar múltiplos estados globalmente
