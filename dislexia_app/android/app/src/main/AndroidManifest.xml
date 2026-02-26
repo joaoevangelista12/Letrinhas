@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Permissões necessárias -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -37,5 +38,20 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!--
+            Desabilita o FirebaseInitProvider (ContentProvider nativo injetado pelo plugin
+            com.google.gms.google-services). Sem esta entrada, o provider inicializa o
+            Firebase ANTES de qualquer código Dart, criando um segundo [DEFAULT] app quando
+            Firebase.initializeApp() é chamado no main.dart → erro "duplicate-app".
+            Com tools:node="remove" o provider é removido do AndroidManifest mesclado e
+            a única inicialização real passa a ser a chamada Dart em main.dart.
+        -->
+        <provider
+            android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:authorities="${applicationId}.firebaseinitprovider"
+            android:exported="false"
+            android:initOrder="100"
+            tools:node="remove" />
     </application>
 </manifest>
