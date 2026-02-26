@@ -2,7 +2,18 @@ plugins {
     id "com.android.application"
     id "org.jetbrains.kotlin.android"
     id "dev.flutter.flutter-gradle-plugin"
-    id "com.google.gms.google-services"
+    // REMOVIDO: id "com.google.gms.google-services"
+    //
+    // Este plugin processava google-services.json → gerava google-services.xml
+    // → FirebaseInitProvider (firebase-common.aar) lia esse XML no startup do
+    // processo Android e inicializava o Firebase ANTES do código Dart rodar.
+    // Quando main.dart chegava em Firebase.initializeApp(), o app [DEFAULT]
+    // já existia → erro "duplicate-app".
+    //
+    // Com firebase_options.dart (DefaultFirebaseOptions), toda a configuração
+    // do Firebase é fornecida pelo Dart em runtime — google-services.json e o
+    // plugin gradle são completamente desnecessários para este projeto
+    // (firebase_auth email/senha + cloud_firestore não requerem o XML nativo).
 }
 
 android {

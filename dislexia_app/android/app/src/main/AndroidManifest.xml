@@ -40,12 +40,29 @@
             android:value="2" />
 
         <!--
-            Desabilita o FirebaseInitProvider (ContentProvider nativo injetado pelo plugin
-            com.google.gms.google-services). Sem esta entrada, o provider inicializa o
-            Firebase ANTES de qualquer código Dart, criando um segundo [DEFAULT] app quando
-            Firebase.initializeApp() é chamado no main.dart → erro "duplicate-app".
-            Com tools:node="remove" o provider é removido do AndroidManifest mesclado e
-            a única inicialização real passa a ser a chamada Dart em main.dart.
+            Segunda camada de proteção contra inicialização automática do Firebase.
+
+            Contexto: firebase-common.aar (dependência transitiva de firebase_core,
+            firebase_auth, cloud_firestore) declara FirebaseInitProvider no seu próprio
+            AndroidManifest.xml. Esse ContentProvider roda no startup do processo Android,
+            ANTES de qualquer código Dart, e chama FirebaseApp.initializeApp(context).
+            Se o provider conseguir inicializar, quando main.dart chegar em
+            Firebase.initializeApp() o app [DEFAULT] já existe → "duplicate-app".
+
+            Primeira camada de proteção (causa raiz): remoção do plugin
+            com.google.gms.google-services do build (ver android/app/build.gradle).
+            Sem o plugin, nenhum google-services.xml é gerado. Sem esse XML,
+            FirebaseInitProvider não consegue ler a configuração e retorna null —
+            sem auto-inicialização nativa.
+
+            Esta entrada (tools:node="remove") é a segunda camada: remove
+            FirebaseInitProvider do AndroidManifest mesclado final, garantindo que o
+            provider nem seja registrado no processo, independente de qualquer outro
+            mecanismo que tente re-adicioná-lo.
+
+            Juntas, as duas camadas garantem que o ÚNICO ponto de inicialização
+            do Firebase é a chamada Dart em main.dart, protegida pelo guard
+            Firebase.apps.isEmpty.
         -->
         <provider
             android:name="com.google.firebase.provider.FirebaseInitProvider"
