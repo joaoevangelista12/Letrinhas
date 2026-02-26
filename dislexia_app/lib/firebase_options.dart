@@ -1,13 +1,48 @@
 // arquivo: lib/firebase_options.dart
-// Arquivo gerado para configuração do Firebase em múltiplas plataformas
-// Este arquivo foi criado manualmente baseado nas configurações do seu projeto
+//
+// ============================================================================
+// AUDITORIA DE CONFIGURACAO FIREBASE — 26/02/2026
+// ============================================================================
+// PROBLEMA ENCONTRADO:
+//   Os blocos "android" e "ios" usavam credenciais de um PROJETO FIREBASE
+//   DIFERENTE do projeto correto, causando "API key not valid".
+//
+//   Evidencia: o App ID codifica o project_number no formato:
+//     1:{project_number}:{platform}:{hash}
+//
+//   Configuracao ANTERIOR (ERRADA):
+//     android.appId            = "1:648476093862:android:..."  <- project 648476093862
+//     android.messagingSenderId= "648476093862"                <- project 648476093862
+//     android.apiKey           = "AIzaSyAi-J-..."              <- API key de 648476093862
+//     android.projectId        = "dislexia-app-1494e"          <- CONTRADICAO: 1494e != 648476...
+//
+//   Configuracao Web (referencia CORRETA):
+//     web.messagingSenderId    = "944349150169"                <- project_number de dislexia-app-1494e
+//     web.projectId            = "dislexia-app-1494e"          <- consistente
+//
+//   A API key do projeto errado tentava acessar "dislexia-app-1494e"
+//   e o Firebase retornava "API key not valid".
+//
+// CORRECAO APLICADA:
+//   Android e iOS agora usam a API key e messagingSenderId do projeto correto
+//   (dislexia-app-1494e, project_number 944349150169), identico ao bloco Web.
+//
+// ACAO PENDENTE — para obter o App ID Android definitivo:
+//   1. Acesse https://console.firebase.google.com -> projeto "dislexia-app-1494e"
+//   2. Project Settings -> "Your apps" -> Add app -> Android
+//   3. Package name: com.example.dislexia_app
+//   4. Clique em "Register app" e copie o App ID gerado (formato: 1:944349150169:android:HASH)
+//   5. Substitua android.appId abaixo pelo valor obtido no passo 4
+//   O appId atual (web, mesmo projeto) e compativel com Auth + Firestore.
+// ============================================================================
 
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
-/// Classe DefaultFirebaseOptions fornece as configurações do Firebase
-/// para diferentes plataformas (Android, iOS, Web, etc.)
+/// Configuracoes do Firebase para cada plataforma.
+/// Todas as plataformas apontam para o projeto "dislexia-app-1494e"
+/// (GCP project_number 944349150169).
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -41,19 +76,8 @@ class DefaultFirebaseOptions {
   }
 
   // ============================================================================
-  // CONFIGURAÇÃO WEB
+  // WEB — projeto dislexia-app-1494e (project_number 944349150169)
   // ============================================================================
-  // ATENÇÃO: As credenciais abaixo são PLACEHOLDERS!
-  // Para obter suas credenciais reais:
-  // 1. Acesse https://console.firebase.google.com
-  // 2. Selecione o projeto "dislexia-app-1494e"
-  // 3. Clique em ⚙️ (Project Settings)
-  // 4. Role até "Your apps" e clique no ícone Web (</>)
-  // 5. Se não tiver app Web, clique em "Add app" > Web
-  // 6. Copie os valores do firebaseConfig
-  // 7. Substitua os valores abaixo
-  // ============================================================================
-
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyBA5mUVvmyACQWDVUiVd5s0qyy1b6DIg4A',
     appId: '1:944349150169:web:5bdcf0adcfca45b2fef7c8',
@@ -65,25 +89,29 @@ class DefaultFirebaseOptions {
   );
 
   // ============================================================================
-  // CONFIGURAÇÃO ANDROID (Extraída do google-services.json)
+  // ANDROID — CORRIGIDO (estava apontando para projeto 648476093862, agora 944349150169)
+  //
+  // TODO: Apos registrar app Android no Firebase Console, substituir appId por
+  //       "1:944349150169:android:<HASH>" obtido no Firebase Console.
   // ============================================================================
-
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAi-J-kfKAQT8WkHGRdTfLPELm0YhkDZY0',
-    appId: '1:648476093862:android:59a5baaa3ad58bb2e1f6bb',
-    messagingSenderId: '648476093862',
+    apiKey: 'AIzaSyBA5mUVvmyACQWDVUiVd5s0qyy1b6DIg4A',
+    appId: '1:944349150169:web:5bdcf0adcfca45b2fef7c8',
+    messagingSenderId: '944349150169',
     projectId: 'dislexia-app-1494e',
     storageBucket: 'dislexia-app-1494e.firebasestorage.app',
   );
 
   // ============================================================================
-  // CONFIGURAÇÃO iOS
+  // iOS — CORRIGIDO (estava apontando para projeto 648476093862, agora 944349150169)
+  //
+  // TODO: Apos registrar app iOS no Firebase Console, substituir appId por
+  //       "1:944349150169:ios:<HASH>" obtido no Firebase Console.
   // ============================================================================
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAi-J-kfKAQT8WkHGRdTfLPELm0YhkDZY0',
-    appId: '1:648476093862:ios:0123456789abcdef', 
-    messagingSenderId: '648476093862',
+    apiKey: 'AIzaSyBA5mUVvmyACQWDVUiVd5s0qyy1b6DIg4A',
+    appId: '1:944349150169:web:5bdcf0adcfca45b2fef7c8',
+    messagingSenderId: '944349150169',
     projectId: 'dislexia-app-1494e',
     storageBucket: 'dislexia-app-1494e.firebasestorage.app',
     iosBundleId: 'com.example.dislexiaApp',
