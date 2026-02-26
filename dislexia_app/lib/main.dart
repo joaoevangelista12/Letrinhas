@@ -32,20 +32,33 @@ void main() async {
   // Garante que os bindings do Flutter estão inicializados
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicializa o Firebase usando firebase_options.dart.
-  // Detecta automaticamente a plataforma (Web, Android, iOS).
+  // Inicializa o Firebase SOMENTE se ainda não foi inicializado.
   //
-  // NÃO usa Firebase.apps.isEmpty como guarda: esse check é Dart-only e retorna
-  // true no hot-restart (a VM Dart é reiniciada), mesmo que o Firebase já esteja
-  // inicializado na camada nativa — causando o erro "duplicate-app".
+  // Por que Firebase.apps.isEmpty é necessário:
+  //   - Em hot-restart, a VM Dart reinicia → Firebase.apps fica vazia no lado
+  //     Dart, mas o processo Android (nativo) continua vivo com o app [DEFAULT]
+  //     já criado na execução anterior.
+  //   - Sem este guard, Firebase.initializeApp() seria chamado novamente e o
+  //     SDK nativo lançaria "duplicate-app" porque [DEFAULT] já existe.
   //
-  // O FirebaseInitProvider nativo foi desabilitado em AndroidManifest.xml
-  // (tools:node="remove"), portanto este é o ÚNICO ponto de inicialização.
-  // firebase_core ^3.x trata o caso de re-inicialização no hot-restart de forma
-  // idempotente: retorna o FirebaseApp já existente em vez de lançar exceção.
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // Por que é seguro (não há risco de skip de inicialização):
+  //   - O plugin google-services foi REMOVIDO do build (build.gradle /
+  //     settings.gradle), então não há google-services.xml gerado.
+  //   - FirebaseInitProvider (firebase-common.aar) está desabilitado via
+  //     tools:node="remove" em AndroidManifest.xml.
+  //   - Portanto Firebase.apps só terá conteúdo se ESTE bloco tiver rodado
+  //     anteriormente — o guard é totalmente confiável.
+  //
+  // Comportamento em cada cenário:
+  //   Cold start        → apps.isEmpty = true  → inicializa → ok
+  //   Hot restart       → apps.isEmpty = true  → inicializa → plugin nativo
+  //                        encontra [DEFAULT] existente e o retorna → ok
+  //   Hot reload        → main() NÃO é chamado novamente → sem duplicata → ok
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
 
   runApp(
     // MultiProvider para gerenciar múltiplos estados globalmente
