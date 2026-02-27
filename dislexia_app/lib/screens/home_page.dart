@@ -72,14 +72,6 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Letrinhas'),
         elevation: 0,
         actions: [
-          // Botão de perfil
-          IconButton(
-            icon: const Icon(Icons.person),
-            tooltip: 'Meu Perfil',
-            onPressed: () {
-              Navigator.of(context).pushNamed('/profile');
-            },
-          ),
           // Botão de configurações
           IconButton(
             icon: const Icon(Icons.settings),
@@ -247,12 +239,16 @@ class _HomePageState extends State<HomePage> {
         children: [
           Icon(icon, color: color, size: highlight ? 32 : 28),
           const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: highlight ? 28 : 24,
-              fontWeight: FontWeight.bold,
-              color: color,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: highlight ? 28 : 24,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
           ),
           const SizedBox(height: 4),
@@ -355,26 +351,33 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// Constrói o cabeçalho com saudação ao usuário
+  /// Constrói o cabeçalho com saudação ao usuário (clicável → perfil)
   Widget _buildHeader(String userName, int userLevel) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF2196F3), Color(0xFF64B5F6)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: () => Navigator.of(context).pushNamed('/profile'),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF2196F3), Color(0xFF64B5F6)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
         children: [
           // Avatar com badge de nível
           Stack(
@@ -451,8 +454,11 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ],
-      ),
-    );
+      ), // Row
+      ), // Padding
+    ),   // Ink
+  ),     // InkWell
+    );   // Material
   }
 
   /// Constrói um card de atividade com sistema de bloqueio

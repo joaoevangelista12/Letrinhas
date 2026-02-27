@@ -110,37 +110,45 @@ class FirestoreService {
         throw Exception('Usuário não encontrado');
       }
 
-      // 2. CALCULA NOVO TOTAL DE PONTOS (nunca negativo)
-      int newTotalPoints = userData.totalPoints + points;
+      // 2. REGRA: só a atividade correspondente ao nível atual altera pontos.
+      // Atividades de níveis anteriores ou posteriores ficam em modo prática.
+      final activityModel = Activities.getById(activityId);
+      final bool isCurrentLevelActivity =
+          activityModel != null && activityModel.requiredLevel == userData.level;
+      final int effectivePoints = isCurrentLevelActivity ? points : 0;
+
+      // 3. CALCULA NOVO TOTAL DE PONTOS (nunca negativo)
+      int newTotalPoints = userData.totalPoints + effectivePoints;
       if (newTotalPoints < 0) {
         newTotalPoints = 0;
       }
 
-      // 3. CALCULA NÍVEL BASEADO NO TOTAL DE PONTOS (bidirecional)
+      // 4. CALCULA NÍVEL BASEADO NO TOTAL DE PONTOS (bidirecional)
       // Level 1: 0-99, Level 2: 100-199, Level 3: 200-299, Level 4: 300-399, Level 5: 400+
       // Nível máximo = 5 (temos 5 atividades)
       int newLevel = (newTotalPoints ~/ 100) + 1;
       if (newLevel > 5) newLevel = 5;
 
-      // 4. CALCULA PROGRESSO DENTRO DO NÍVEL (0-99)
+      // 5. CALCULA PROGRESSO DENTRO DO NÍVEL (0-99)
       final int newProgress = newTotalPoints % 100;
 
       final userRef = _firestore.collection(usersCollection).doc(uid);
 
-      // 5. PREPARA REGISTRO DA ATIVIDADE (ID único por conclusão)
+      // 6. PREPARA REGISTRO DA ATIVIDADE (ID único por conclusão)
+      // effectivePoints = 0 quando atividade está em modo prática (fora do nível atual)
       final now = DateTime.now();
       final docId = '$activityId-${now.millisecondsSinceEpoch}';
       final activityProgress = ActivityProgress(
         activityId: activityId,
         activityName: activityName,
-        points: points,
+        points: effectivePoints,
         completedAt: now,
         attempts: attempts,
         accuracy: accuracy,
         durationSeconds: durationSeconds,
       );
 
-      // 6. ATUALIZA SUBCOLEÇÃO E DOCUMENTO DO USUÁRIO EM BATCH ATÔMICO
+      // 7. ATUALIZA SUBCOLEÇÃO E DOCUMENTO DO USUÁRIO EM BATCH ATÔMICO
       final Map<String, dynamic> updateData = {
         'totalPoints': newTotalPoints,
         'activitiesCompleted': FieldValue.increment(1),
@@ -157,7 +165,7 @@ class FirestoreService {
       batch.update(userRef, updateData);
       await batch.commit();
 
-      // 7. ATUALIZA ESTATÍSTICAS DE TEMPO (operação separada, não bloqueia pontuação)
+      // 8. ATUALIZA ESTATÍSTICAS DE TEMPO (operação separada, não bloqueia pontuação)
       await _updateTimeStats(
         uid: uid,
         activityId: activityId,
