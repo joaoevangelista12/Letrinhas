@@ -1,5 +1,6 @@
 // arquivo: lib/screens/activity_syllabic.dart
 
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
@@ -251,6 +252,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
   int _score = 0;
   int _correctCount = 0;
   int _totalAttempts = 0;
+  Timer? _advanceTimer;
 
   @override
   void initState() {
@@ -285,19 +287,13 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
 
   @override
   void dispose() {
+    _advanceTimer?.cancel();
     _confettiController.dispose();
     _shakeController.dispose();
     super.dispose();
   }
 
   Map<String, dynamic> get _currentQuestion => _questions[_currentQuestionIndex];
-
-  /// Monta a palavra com a lacuna (ex: "FL_R")
-  String get _wordWithGap {
-    final word = _currentQuestion['word'] as String;
-    final idx = _currentQuestion['missingIndex'] as int;
-    return '${word.substring(0, idx)}_${word.substring(idx + 1)}';
-  }
 
   void _checkAnswer(String option) {
     if (_showFeedback) return;
@@ -326,7 +322,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
       _shakeController.forward(from: 0);
     }
 
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    _advanceTimer = Timer(const Duration(seconds: 5), () {
       if (!mounted) return;
       if (_currentQuestionIndex < _questions.length - 1) {
         setState(() {
@@ -422,15 +418,8 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
                   ),
                   const SizedBox(height: 20),
 
-                  // Palavra com lacuna
-                  Text(
-                    _wordWithGap,
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          fontSize: 48 * accessibilityProvider.fontSize,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 8,
-                        ),
-                  ),
+                  // Palavra com lacuna — letra faltando substitída pela escolhida
+                  _buildWordDisplay(),
                   const SizedBox(height: 16),
 
                   // Instrução
@@ -535,6 +524,53 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
           ),
         ),
       ],
+    );
+  }
+
+  /// Exibe a palavra letra a letra.
+  /// A lacuna mostra "_" enquanto não há resposta, ou a letra escolhida
+  /// colorida de VERDE (acerto) ou VERMELHO (erro) após a resposta.
+  /// As outras letras permanecem na cor padrão.
+  Widget _buildWordDisplay() {
+    final accessibilityProvider = context.read<AccessibilityProvider>();
+    final word = _currentQuestion['word'] as String;
+    final missingIndex = _currentQuestion['missingIndex'] as int;
+    final double fontSize = 48 * accessibilityProvider.fontSize;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(word.length, (i) {
+        final isMissing = i == missingIndex;
+
+        String displayChar;
+        Color textColor;
+
+        if (isMissing) {
+          if (_selectedOption == null) {
+            displayChar = '_';
+            textColor = Theme.of(context).primaryColor;
+          } else {
+            displayChar = _selectedOption!;
+            textColor = _isCorrect ? Colors.green.shade700 : Colors.red.shade700;
+          }
+        } else {
+          displayChar = word[i];
+          textColor = Colors.black87;
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3),
+          child: Text(
+            displayChar,
+            style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+          ),
+        );
+      }),
     );
   }
 
