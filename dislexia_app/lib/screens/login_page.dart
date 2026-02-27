@@ -100,6 +100,9 @@ class _LoginPageState extends State<LoginPage> {
 
       // Navega para home
       Navigator.of(context).pushReplacementNamed('/home');
+    } else if (result.emailNotVerified) {
+      // Email não verificado: oferece opção de reenviar o link
+      _showEmailNotVerifiedDialog(result.unverifiedEmail ?? _emailController.text.trim());
     } else {
       // Mostra erro do Firebase
       ScaffoldMessenger.of(context).showSnackBar(
@@ -112,71 +115,159 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  /// Mostra diálogo para redefinir senha
-  void _showResetPasswordDialog() {
-    final emailController = TextEditingController();
-
+  /// Mostra diálogo quando o email ainda não foi verificado
+  void _showEmailNotVerifiedDialog(String email) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Redefinir Senha'),
+        title: const Text('Email não verificado'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Digite seu email para receber as instruções de redefinição de senha.',
-            ),
+            const Icon(Icons.mark_email_unread_outlined, size: 48, color: Colors.orange),
             const SizedBox(height: 16),
-            TextField(
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+            Text(
+              'O email $email ainda não foi verificado.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Verifique sua caixa de entrada (e a pasta de spam) e clique no link de ativação.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
+            child: const Text('Fechar'),
           ),
           ElevatedButton(
             onPressed: () async {
-              final email = emailController.text.trim();
-              if (email.isEmpty || !email.contains('@')) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Digite um email válido'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-                return;
-              }
-
-              Navigator.of(context).pop(); // Fecha diálogo
-
-              // Envia email de redefinição
-              final authService = AuthService();
-              final result = await authService.resetPassword(email);
-
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(result.message),
-                    backgroundColor:
-                        result.success ? Colors.green : Colors.red,
-                    duration: const Duration(seconds: 4),
-                  ),
-                );
-              }
+              Navigator.of(context).pop();
+              await _resendVerificationEmail(email);
             },
-            child: const Text('Enviar'),
+            child: const Text('Reenviar email'),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Reenvia o email de verificação
+  Future<void> _resendVerificationEmail(String email) async {
+    if (_passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Digite sua senha para reenviar o email de verificação.'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    final authService = AuthService();
+    final result = await authService.resendVerificationEmail(
+      email,
+      _passwordController.text,
+    );
+    setState(() => _isLoading = false);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result.message),
+        backgroundColor: result.success ? Colors.green : Colors.red,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  /// Mostra diálogo para redefinir senha
+  void _showResetPasswordDialog() {
+    final emailController = TextEditingController(
+      text: _emailController.text.trim(),
+    );
+    bool isSending = false;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('Redefinir Senha'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Digite seu email para receber as instruções de redefinição de senha.',
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  hintText: 'seu@email.com',
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isSending ? null : () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: isSending
+                  ? null
+                  : () async {
+                      final email = emailController.text.trim();
+                      if (email.isEmpty || !email.contains('@')) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Digite um email válido'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+
+                      setDialogState(() => isSending = true);
+
+                      // Envia email de redefinição
+                      final authService = AuthService();
+                      final result = await authService.resetPassword(email);
+
+                      if (!dialogContext.mounted) return;
+                      Navigator.of(dialogContext).pop(); // Fecha diálogo
+
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(result.message),
+                            backgroundColor: result.success ? Colors.green : Colors.orange,
+                            duration: const Duration(seconds: 5),
+                          ),
+                        );
+                      }
+                    },
+              child: isSending
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Enviar'),
+            ),
+          ],
+        ),
       ),
     );
   }

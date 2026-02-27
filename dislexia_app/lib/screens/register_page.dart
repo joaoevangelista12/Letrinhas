@@ -1,8 +1,6 @@
 // arquivo: lib/screens/register_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../main.dart';
 import '../widgets/custom_button.dart';
 import '../services/auth_service.dart';
 
@@ -108,26 +106,46 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (!mounted) return;
 
-    if (result.success && result.user != null) {
-      // Atualiza o Provider com dados do usuário
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      userProvider.updateUser(
-        result.user!.uid,
-        result.user!.email!,
-        result.user!.displayName,
+    if (result.success && result.emailVerificationSent) {
+      // Cadastro bem-sucedido: mostra diálogo explicando verificação de email
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('Verifique seu email'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.mark_email_read_outlined, size: 56, color: Colors.green),
+              const SizedBox(height: 16),
+              Text(
+                result.message,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Ok, entendi'),
+            ),
+          ],
+        ),
       );
 
-      // Mostra mensagem de sucesso
+      if (!mounted) return;
+      // Volta para tela de login após confirmar
+      Navigator.of(context).pop();
+    } else if (result.success) {
+      // Cadastro bem-sucedido sem envio de verificação (fallback)
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.message),
           backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 3),
         ),
       );
-
-      // Navega para home
-      Navigator.of(context).pushReplacementNamed('/home');
+      Navigator.of(context).pop();
     } else {
       // Mostra erro do Firebase
       ScaffoldMessenger.of(context).showSnackBar(

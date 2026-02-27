@@ -28,6 +28,18 @@ class AuthService {
         password: password,
       );
 
+      // Verifica se o email foi confirmado
+      if (credential.user != null && !credential.user!.emailVerified) {
+        // Faz logout para impedir acesso sem verificação
+        await _auth.signOut();
+        return AuthResult(
+          success: false,
+          message: 'Email não verificado. Verifique sua caixa de entrada e clique no link de ativação.',
+          emailNotVerified: true,
+          unverifiedEmail: email.trim(),
+        );
+      }
+
       // Atualiza último login no Firestore.
       // Erro aqui NÃO falha o login — o usuário já está autenticado.
       if (credential.user != null) {
@@ -82,6 +94,15 @@ class AuthService {
       // Recarrega usuário para obter dados atualizados
       await credential.user?.reload();
 
+      // Envia email de verificação
+      // Erro aqui NÃO falha o cadastro — conta já foi criada
+      try {
+        await credential.user?.sendEmailVerification();
+        debugPrint('[AuthService] Email de verificação enviado para: $email');
+      } catch (emailError) {
+        debugPrint('[AuthService] Aviso: falha ao enviar email de verificação (não crítico): $emailError');
+      }
+
       // Cria documento do usuário no Firestore.
       // Erro aqui NÃO falha o cadastro — o usuário já está autenticado.
       if (credential.user != null) {
@@ -96,10 +117,13 @@ class AuthService {
         }
       }
 
+      // Faz logout imediato para forçar verificação de email antes do acesso
+      await _auth.signOut();
+
       return AuthResult(
         success: true,
-        user: _auth.currentUser,
-        message: 'Cadastro realizado com sucesso!',
+        message: 'Conta criada com sucesso! Enviamos um email de verificação para $email. Confirme seu email para fazer login.',
+        emailVerificationSent: true,
       );
     } on FirebaseAuthException catch (e) {
       debugPrint('[AuthService] FirebaseAuthException no cadastro → code=${e.code} | message=${e.message} | plugin=${e.plugin}');
@@ -118,25 +142,77 @@ class AuthService {
   }
 
   /// Envia email de redefinição de senha
+  /// Sempre retorna mensagem neutra por segurança (não revela se email existe)
   Future<AuthResult> resetPassword(String email) async {
+    const neutralMessage = 'Se este email estiver cadastrado, enviamos um link para redefinição. Verifique sua caixa de entrada.';
     try {
       await _auth.sendPasswordResetEmail(email: email.trim());
       return AuthResult(
         success: true,
-        message: 'Email de redefinição enviado! Verifique sua caixa de entrada.',
+        message: neutralMessage,
       );
     } on FirebaseAuthException catch (e) {
       debugPrint('[AuthService] FirebaseAuthException no reset de senha → code=${e.code} | message=${e.message}');
+      // Erros de formato de email são revelados — não comprometem segurança
+      if (e.code == 'invalid-email') {
+        return AuthResult(
+          success: false,
+          message: 'Email inválido. Verifique o endereço digitado.',
+        );
+      }
+      // Para qualquer outro erro (incluindo user-not-found), retorna mensagem neutra
       return AuthResult(
-        success: false,
-        message: _getErrorMessage(e.code, e.message),
+        success: true,
+        message: neutralMessage,
       );
     } catch (e, stackTrace) {
       debugPrint('[AuthService] Erro genérico no reset de senha: $e');
       debugPrint('[AuthService] StackTrace: $stackTrace');
       return AuthResult(
+        success: true,
+        message: neutralMessage,
+      );
+    }
+  }
+
+  /// Reenvia o email de verificação para o usuário atual
+  Future<AuthResult> resendVerificationEmail(String email, String password) async {
+    try {
+      // Faz login temporário para obter referência ao usuário
+      final credential = await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+
+      if (credential.user != null && !credential.user!.emailVerified) {
+        await credential.user!.sendEmailVerification();
+        await _auth.signOut();
+        return AuthResult(
+          success: true,
+          message: 'Email de verificação reenviado! Verifique sua caixa de entrada.',
+        );
+      } else if (credential.user != null && credential.user!.emailVerified) {
+        return AuthResult(
+          success: true,
+          message: 'Seu email já está verificado. Faça login normalmente.',
+        );
+      }
+
+      await _auth.signOut();
+      return AuthResult(
         success: false,
-        message: 'Erro ao enviar email. Tente novamente.',
+        message: 'Não foi possível reenviar o email. Tente novamente.',
+      );
+    } on FirebaseAuthException catch (e) {
+      debugPrint('[AuthService] FirebaseAuthException ao reenviar verificação → code=${e.code}');
+      return AuthResult(
+        success: false,
+        message: _getErrorMessage(e.code, e.message),
+      );
+    } catch (e) {
+      return AuthResult(
+        success: false,
+        message: 'Erro ao reenviar email. Tente novamente.',
       );
     }
   }
@@ -206,10 +282,19 @@ class AuthResult {
   final bool success;
   final User? user;
   final String message;
+  /// Indica que um email de verificação foi enviado (após cadastro)
+  final bool emailVerificationSent;
+  /// Indica que o usuário existe mas o email ainda não foi verificado
+  final bool emailNotVerified;
+  /// Email do usuário com verificação pendente (para facilitar reenvio)
+  final String? unverifiedEmail;
 
   AuthResult({
     required this.success,
     this.user,
     required this.message,
+    this.emailVerificationSent = false,
+    this.emailNotVerified = false,
+    this.unverifiedEmail,
   });
 }
