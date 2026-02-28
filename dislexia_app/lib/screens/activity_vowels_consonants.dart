@@ -1,5 +1,6 @@
 // arquivo: lib/screens/activity_vowels_consonants.dart
 
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
@@ -186,6 +187,13 @@ class _ActivityVowelsConsonantsState extends State<ActivityVowelsConsonants>
     },
   ];
 
+  static const List<String> _comfortMessages = [
+    'Quase! Vamos tentar de novo 😊',
+    'Você consegue! Tente outra vez 💪',
+    'Não desista! Mais uma tentativa 🌟',
+    'Continue tentando! Vai conseguir 🎯',
+  ];
+
   late List<Map<String, dynamic>> _questions;
 
   int _currentQuestionIndex = 0;
@@ -195,6 +203,8 @@ class _ActivityVowelsConsonantsState extends State<ActivityVowelsConsonants>
   int _score = 0;
   int _correctCount = 0;
   int _totalAttempts = 0;
+  Timer? _advanceTimer;
+  int _wrongAttempts = 0;
 
   @override
   void initState() {
@@ -229,6 +239,7 @@ class _ActivityVowelsConsonantsState extends State<ActivityVowelsConsonants>
 
   @override
   void dispose() {
+    _advanceTimer?.cancel();
     _confettiController.dispose();
     _shakeController.dispose();
     super.dispose();
@@ -241,17 +252,19 @@ class _ActivityVowelsConsonantsState extends State<ActivityVowelsConsonants>
     if (_showFeedback) return;
 
     final correct = option == _currentQuestion['correct'];
+    final newWrongAttempts = correct ? _wrongAttempts : _wrongAttempts + 1;
+    final applyPenalty = !correct && newWrongAttempts >= 2;
 
     setState(() {
       _selectedOption = option;
       _showFeedback = true;
       _isCorrect = correct;
       _totalAttempts++;
-
+      if (!correct) _wrongAttempts = newWrongAttempts;
       if (correct) {
         _correctCount++;
         _score += 20;
-      } else {
+      } else if (applyPenalty) {
         _score -= 10;
       }
     });
@@ -259,24 +272,37 @@ class _ActivityVowelsConsonantsState extends State<ActivityVowelsConsonants>
     if (correct) {
       SoundHelper.playCorrect();
       _confettiController.play();
+      _advanceTimer = Timer(const Duration(milliseconds: 1500), _goToNext);
     } else {
       SoundHelper.playWrong();
       _shakeController.forward(from: 0);
-    }
-
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (!mounted) return;
-      if (_currentQuestionIndex < _questions.length - 1) {
-        setState(() {
-          _currentQuestionIndex++;
-          _selectedOption = null;
-          _showFeedback = false;
-          _isCorrect = false;
-        });
+      if (applyPenalty) {
+        _advanceTimer = Timer(const Duration(milliseconds: 1500), _goToNext);
       } else {
-        _showCompletionDialog();
+        _advanceTimer = Timer(const Duration(milliseconds: 1500), () {
+          if (!mounted) return;
+          setState(() {
+            _showFeedback = false;
+            _selectedOption = null;
+          });
+        });
       }
-    });
+    }
+  }
+
+  void _goToNext() {
+    if (!mounted) return;
+    if (_currentQuestionIndex < _questions.length - 1) {
+      setState(() {
+        _currentQuestionIndex++;
+        _selectedOption = null;
+        _showFeedback = false;
+        _isCorrect = false;
+        _wrongAttempts = 0;
+      });
+    } else {
+      _showCompletionDialog();
+    }
   }
 
   Future<void> _saveProgress() async {
@@ -488,7 +514,7 @@ class _ActivityVowelsConsonantsState extends State<ActivityVowelsConsonants>
           borderColor = _isCorrect ? Colors.green : Colors.red;
           bgColor = _isCorrect ? Colors.green.shade50 : Colors.red.shade50;
         }
-        if (_showFeedback && !_isCorrect && isCorrectAnswer) {
+        if (_showFeedback && !_isCorrect && isCorrectAnswer && _wrongAttempts >= 2) {
           borderColor = Colors.green;
           bgColor = Colors.green.shade50;
         }
@@ -536,30 +562,44 @@ class _ActivityVowelsConsonantsState extends State<ActivityVowelsConsonants>
   }
 
   Widget _buildFeedback() {
+    final Color color;
+    final IconData icon;
+    final String message;
+    if (_isCorrect) {
+      color = Colors.green;
+      icon = Icons.check_circle;
+      message = 'Correto! +20 pontos';
+    } else if (_wrongAttempts == 1) {
+      color = Colors.orange;
+      icon = Icons.emoji_emotions_outlined;
+      message = _comfortMessages[_currentQuestionIndex % _comfortMessages.length];
+    } else {
+      color = Colors.red;
+      icon = Icons.cancel;
+      message = 'Errado! -10 pontos';
+    }
     return AnimatedOpacity(
       opacity: _showFeedback ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 300),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: _isCorrect ? Colors.green : Colors.red,
+          color: color,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              _isCorrect ? Icons.check_circle : Icons.cancel,
-              color: Colors.white,
-              size: 32,
-            ),
+            Icon(icon, color: Colors.white, size: 32),
             const SizedBox(width: 12),
-            Text(
-              _isCorrect ? 'Correto! +20 pontos' : 'Errado! -10 pontos',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],

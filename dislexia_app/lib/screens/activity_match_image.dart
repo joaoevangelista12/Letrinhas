@@ -1,5 +1,6 @@
 // arquivo: lib/screens/activity_match_image.dart
 
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
@@ -185,6 +186,13 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
   // Questões da sessão (5 sorteadas e com alternativas embaralhadas)
   late List<_Question> _questions;
 
+  static const List<String> _comfortMessages = [
+    'Quase! Vamos tentar de novo 😊',
+    'Você consegue! Tente outra vez 💪',
+    'Não desista! Mais uma tentativa 🌟',
+    'Continue tentando! Vai conseguir 🎯',
+  ];
+
   // Estado da atividade
   int _currentQuestion = 0;
   int _score = 0;
@@ -195,6 +203,9 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
   String? _selectedOption;
   bool? _lastAnswerCorrect;
   bool _isProcessing = false;
+  bool _showFeedback = false;
+  Timer? _advanceTimer;
+  int _wrongAttempts = 0;
 
   @override
   void initState() {
@@ -229,28 +240,32 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
 
   @override
   void dispose() {
+    _advanceTimer?.cancel();
     _confettiController.dispose();
     _shakeController.dispose();
     super.dispose();
   }
 
-  /// Processa a resposta do usuário (sem segunda chance — avança direto)
+  /// Processa a resposta do usuário com sistema de duas tentativas
   void _handleAnswer(String option) {
     if (_isProcessing) return;
 
     final question = _questions[_currentQuestion];
     final isCorrect = option == question.correct;
+    final newWrongAttempts = isCorrect ? _wrongAttempts : _wrongAttempts + 1;
+    final applyPenalty = !isCorrect && newWrongAttempts >= 2;
 
     setState(() {
       _isProcessing = true;
+      _showFeedback = true;
       _selectedOption = option;
       _totalAttempts++;
       _lastAnswerCorrect = isCorrect;
-
+      if (!isCorrect) _wrongAttempts = newWrongAttempts;
       if (isCorrect) {
         _score += 20;
         _correctCount++;
-      } else {
+      } else if (applyPenalty) {
         _score -= 10;
       }
     });
@@ -258,25 +273,40 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
     if (isCorrect) {
       SoundHelper.playCorrect();
       _confettiController.play();
+      _advanceTimer = Timer(const Duration(milliseconds: 1500), _goToNext);
     } else {
       SoundHelper.playWrong();
       _shakeController.forward(from: 0);
-    }
-
-    // Sempre avança para próxima questão (sem segunda chance)
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (!mounted) return;
-      if (_currentQuestion < _questions.length - 1) {
-        setState(() {
-          _currentQuestion++;
-          _selectedOption = null;
-          _lastAnswerCorrect = null;
-          _isProcessing = false;
-        });
+      if (applyPenalty) {
+        _advanceTimer = Timer(const Duration(milliseconds: 1500), _goToNext);
       } else {
-        _showCompletionDialog();
+        _advanceTimer = Timer(const Duration(milliseconds: 1500), () {
+          if (!mounted) return;
+          setState(() {
+            _isProcessing = false;
+            _showFeedback = false;
+            _selectedOption = null;
+            _lastAnswerCorrect = null;
+          });
+        });
       }
-    });
+    }
+  }
+
+  void _goToNext() {
+    if (!mounted) return;
+    if (_currentQuestion < _questions.length - 1) {
+      setState(() {
+        _currentQuestion++;
+        _selectedOption = null;
+        _lastAnswerCorrect = null;
+        _isProcessing = false;
+        _showFeedback = false;
+        _wrongAttempts = 0;
+      });
+    } else {
+      _showCompletionDialog();
+    }
   }
 
   /// Salva progresso da atividade no Firestore
@@ -430,6 +460,12 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
                       child: _buildOptions(question, accessibility),
                     ),
                   ),
+
+                  // Feedback de conforto / erro / acerto
+                  if (_showFeedback) ...[
+                    const SizedBox(height: 12),
+                    _buildFeedback(),
+                  ],
                 ],
               ),
             ),
@@ -542,6 +578,11 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
       backgroundColor = Colors.red.shade100;
       borderColor = Colors.red;
       textColor = Colors.red.shade900;
+    } else if (_isProcessing && _lastAnswerCorrect == false && _wrongAttempts >= 2 && isCorrectOption) {
+      // Revela a resposta correta na segunda tentativa errada
+      backgroundColor = Colors.green.shade100;
+      borderColor = Colors.green;
+      textColor = Colors.green.shade900;
     } else {
       // Estado padrão
       backgroundColor = Colors.white;
@@ -590,6 +631,15 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
                       size: 24 * accessibility.iconSize,
                     ),
                   ),
+                if (!isSelected && _isProcessing && _lastAnswerCorrect == false && _wrongAttempts >= 2 && isCorrectOption)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: 24 * accessibility.iconSize,
+                    ),
+                  ),
                 Text(
                   option,
                   style: TextStyle(
@@ -601,6 +651,53 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeedback() {
+    final Color color;
+    final IconData icon;
+    final String message;
+    if (_lastAnswerCorrect == true) {
+      color = Colors.green;
+      icon = Icons.check_circle;
+      message = 'Correto! +20 pontos';
+    } else if (_wrongAttempts == 1) {
+      color = Colors.orange;
+      icon = Icons.emoji_emotions_outlined;
+      message = _comfortMessages[_currentQuestion % _comfortMessages.length];
+    } else {
+      color = Colors.red;
+      icon = Icons.cancel;
+      message = 'Errado! -10 pontos';
+    }
+    return AnimatedOpacity(
+      opacity: _showFeedback ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 300),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
