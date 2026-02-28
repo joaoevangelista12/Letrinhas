@@ -221,11 +221,11 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
       'options': ['C', 'S', 'Z', 'T'],
     },
     {
-      'emoji': '😨',
-      'word': 'MEDO',
+      'emoji': '🧠',
+      'word': 'CEREBRO',
       'missingIndex': 0,
-      'correct': 'M',
-      'options': ['M', 'N', 'L', 'T'],
+      'correct': 'C',
+      'options': ['C', 'N', 'S', 'T'],
     },
     {
       'emoji': '🌿',
