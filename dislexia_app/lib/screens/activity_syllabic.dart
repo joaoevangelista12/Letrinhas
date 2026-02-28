@@ -173,7 +173,7 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
     },
     {
       'emoji': '🍋',
-      'word': 'LIMA',
+      'word': 'LIMAO',
       'missingIndex': 0,
       'correct': 'L',
       'options': ['L', 'N', 'M', 'T'],
@@ -214,9 +214,9 @@ class _ActivitySyllabicState extends State<ActivitySyllabic>
       'options': ['E', 'A', 'I', 'O'],
     },
     {
-      'emoji': '🐦',
-      'word': 'BICO',
-      'missingIndex': 2,
+        'emoji': '🦢',
+      'word': 'CISNE',
+      'missingIndex': 0,
       'correct': 'C',
       'options': ['C', 'S', 'Z', 'T'],
     },
