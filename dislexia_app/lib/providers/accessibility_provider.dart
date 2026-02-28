@@ -13,7 +13,6 @@ class AccessibilityProvider extends ChangeNotifier {
   double _fontSize = 1.0; // Multiplicador (0.8, 1.0, 1.2, 1.4)
   double _iconSize = 1.0; // Multiplicador (1.0, 1.2, 1.4)
   bool _enableAnimations = true;
-  bool _enableSounds = true;
 
   // Timer para debouncing de salvamentos (otimização de performance)
   Timer? _debounceTimer;
@@ -24,7 +23,6 @@ class AccessibilityProvider extends ChangeNotifier {
   static const String _keyFontSize = 'font_size';
   static const String _keyIconSize = 'icon_size';
   static const String _keyAnimations = 'enable_animations';
-  static const String _keySounds = 'enable_sounds';
 
   // Getters
   bool get highContrast => _highContrast;
@@ -32,7 +30,6 @@ class AccessibilityProvider extends ChangeNotifier {
   double get fontSize => _fontSize;
   double get iconSize => _iconSize;
   bool get enableAnimations => _enableAnimations;
-  bool get enableSounds => _enableSounds;
 
   /// Carrega configurações salvas do SharedPreferences
   Future<void> loadSettings() async {
@@ -43,7 +40,6 @@ class AccessibilityProvider extends ChangeNotifier {
       _fontSize = prefs.getDouble(_keyFontSize) ?? 1.0;
       _iconSize = prefs.getDouble(_keyIconSize) ?? 1.0;
       _enableAnimations = prefs.getBool(_keyAnimations) ?? true;
-      _enableSounds = prefs.getBool(_keySounds) ?? true;
       notifyListeners();
     } catch (e) {
       debugPrint('Erro ao carregar configurações: $e');
@@ -97,13 +93,6 @@ class AccessibilityProvider extends ChangeNotifier {
     await _saveSettings();
   }
 
-  /// Alterna sons
-  Future<void> toggleSounds() async {
-    _enableSounds = !_enableSounds;
-    notifyListeners();
-    await _saveSettings();
-  }
-
   /// Reseta todas as configurações para os valores padrão
   Future<void> resetToDefaults() async {
     _highContrast = false;
@@ -111,7 +100,6 @@ class AccessibilityProvider extends ChangeNotifier {
     _fontSize = 1.0;
     _iconSize = 1.0;
     _enableAnimations = true;
-    _enableSounds = true;
     notifyListeners();
     await _saveSettings();
   }
@@ -125,7 +113,6 @@ class AccessibilityProvider extends ChangeNotifier {
       await prefs.setDouble(_keyFontSize, _fontSize);
       await prefs.setDouble(_keyIconSize, _iconSize);
       await prefs.setBool(_keyAnimations, _enableAnimations);
-      await prefs.setBool(_keySounds, _enableSounds);
       debugPrint('✅ Configurações salvas');
     } catch (e) {
       debugPrint('❌ Erro ao salvar configurações: $e');
