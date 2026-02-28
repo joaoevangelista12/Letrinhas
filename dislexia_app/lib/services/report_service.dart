@@ -279,27 +279,34 @@ class ReportService {
       final name = def['name']!;
       final stats = statsMap[id];
 
-      widgets.add(pw.SizedBox(height: 10));
-      widgets.add(_buildActivityCard(
-        index: i + 1,
-        name: name,
-        accuracy24h: _accuracy(history, id, cutoff24h),
-        accuracy7d: _accuracy(history, id, cutoff7d),
-        sessions24h: _sessionCount(history, id, cutoff24h),
-        sessions7d: _sessionCount(history, id, cutoff7d),
-        lastSession: stats != null && stats.lastSessionDuration > 0
-            ? formatDuration(stats.lastSessionDuration)
-            : 'Sem dados',
-        avgWeek: stats != null && stats.avgLast7Days > 0
-            ? formatDuration(stats.avgLast7Days)
-            : 'Sem dados',
-        totalWeek: stats != null && stats.lastWeekAccumulated > 0
-            ? formatDuration(stats.lastWeekAccumulated)
-            : 'Sem dados',
-        total24h: stats != null && stats.last24hAccumulated > 0
-            ? formatDuration(stats.last24hAccumulated)
-            : 'Sem dados',
-      ));
+      // Spacer e card combinados em um único widget para que MultiPage
+      // trate o conjunto como bloco atômico — evita o card aparecer vazio
+      // numa página com o conteúdo fluindo para a próxima.
+      widgets.add(
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(top: 10),
+          child: _buildActivityCard(
+            index: i + 1,
+            name: name,
+            accuracy24h: _accuracy(history, id, cutoff24h),
+            accuracy7d: _accuracy(history, id, cutoff7d),
+            sessions24h: _sessionCount(history, id, cutoff24h),
+            sessions7d: _sessionCount(history, id, cutoff7d),
+            lastSession: stats != null && stats.lastSessionDuration > 0
+                ? formatDuration(stats.lastSessionDuration)
+                : 'Sem dados',
+            avgWeek: stats != null && stats.avgLast7Days > 0
+                ? formatDuration(stats.avgLast7Days)
+                : 'Sem dados',
+            totalWeek: stats != null && stats.lastWeekAccumulated > 0
+                ? formatDuration(stats.lastWeekAccumulated)
+                : 'Sem dados',
+            total24h: stats != null && stats.last24hAccumulated > 0
+                ? formatDuration(stats.last24hAccumulated)
+                : 'Sem dados',
+          ),
+        ),
+      );
     }
     return widgets;
   }

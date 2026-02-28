@@ -49,8 +49,6 @@ class SettingsPage extends StatelessWidget {
               _buildSectionTitle(context, 'Experiência', Icons.tune),
               const SizedBox(height: 16),
               _buildAnimationsSwitch(context, accessibilityProvider),
-              const SizedBox(height: 12),
-              _buildSoundsSwitch(context, accessibilityProvider),
               const SizedBox(height: 32),
 
               // Botão de resetar
@@ -265,26 +263,6 @@ class SettingsPage extends StatelessWidget {
       trailing: Switch(
         value: provider.enableAnimations,
         onChanged: (_) => provider.toggleAnimations(),
-        activeColor: Theme.of(context).primaryColor,
-      ),
-    );
-  }
-
-  /// Switch de sons
-  Widget _buildSoundsSwitch(
-    BuildContext context,
-    AccessibilityProvider provider,
-  ) {
-    return _buildSettingCard(
-      context,
-      icon: Icons.volume_up,
-      title: 'Sons e Voz',
-      subtitle: provider.enableSounds
-          ? 'Leitura por voz ativada'
-          : 'Leitura por voz desativada',
-      trailing: Switch(
-        value: provider.enableSounds,
-        onChanged: (_) => provider.toggleSounds(),
         activeColor: Theme.of(context).primaryColor,
       ),
     );

@@ -371,8 +371,8 @@ class _ProfilePageState extends State<ProfilePage> {
         Expanded(
           child: _buildStatCard(
             icon: Icons.check_circle,
-            label: 'Completas',
-            value: '${userProvider.activitiesCompleted}/${_allActivities.length}',
+            label: 'Concluídas',
+            value: '${userProvider.activitiesCompleted}',
             color: Colors.green,
           ),
         ),
@@ -801,10 +801,12 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  /// Calcula taxa de conclusão
+  /// Calcula taxa de conclusão com base no total real de atividades do app
   int _calculateCompletionRate(UserProvider userProvider) {
-    if (_allActivities.isEmpty) return 0;
-    return ((userProvider.activitiesCompleted / _allActivities.length) * 100).toInt();
+    final total = Activities.all.length;
+    if (total == 0) return 0;
+    final rate = (userProvider.activitiesCompleted / total * 100).toInt();
+    return rate.clamp(0, 100);
   }
 
   /// Formata data (DD/MM/YYYY)
