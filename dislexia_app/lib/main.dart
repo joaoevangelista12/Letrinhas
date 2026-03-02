@@ -29,31 +29,12 @@ import 'widgets/protected_activity.dart';
 /// O Firebase é configurado automaticamente para a plataforma atual
 /// (Web, Android ou iOS) usando [DefaultFirebaseOptions].
 void main() async {
-  // Garante que os bindings do Flutter estão inicializados
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicializa o Firebase SOMENTE se ainda não foi inicializado.
-  //
-  // Por que Firebase.apps.isEmpty é necessário:
-  //   - Em hot-restart, a VM Dart reinicia → Firebase.apps fica vazia no lado
-  //     Dart, mas o processo Android (nativo) continua vivo com o app [DEFAULT]
-  //     já criado na execução anterior.
-  //   - Sem este guard, Firebase.initializeApp() seria chamado novamente e o
-  //     SDK nativo lançaria "duplicate-app" porque [DEFAULT] já existe.
-  //
-  // Por que é seguro (não há risco de skip de inicialização):
-  //   - O plugin google-services foi REMOVIDO do build (build.gradle /
-  //     settings.gradle), então não há google-services.xml gerado.
-  //   - FirebaseInitProvider (firebase-common.aar) está desabilitado via
-  //     tools:node="remove" em AndroidManifest.xml.
-  //   - Portanto Firebase.apps só terá conteúdo se ESTE bloco tiver rodado
-  //     anteriormente — o guard é totalmente confiável.
-  //
-  // Comportamento em cada cenário:
-  //   Cold start        → apps.isEmpty = true  → inicializa → ok
-  //   Hot restart       → apps.isEmpty = true  → inicializa → plugin nativo
-  //                        encontra [DEFAULT] existente e o retorna → ok
-  //   Hot reload        → main() NÃO é chamado novamente → sem duplicata → ok
+  // Guard contra "duplicate-app" no hot-restart: o processo nativo Android
+  // permanece vivo entre restarts, mas Firebase.apps se esvazia no lado Dart.
+  // O google-services plugin foi removido do build e o FirebaseInitProvider
+  // está desabilitado no AndroidManifest, portanto este guard é confiável.
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -61,12 +42,9 @@ void main() async {
   }
 
   runApp(
-    // MultiProvider para gerenciar múltiplos estados globalmente
     MultiProvider(
       providers: [
-        // Provider do usuário
         ChangeNotifierProvider(create: (_) => UserProvider()),
-        // Provider de acessibilidade
         ChangeNotifierProvider(create: (_) => AccessibilityProvider()),
       ],
       child: const DislexiaApp(),
@@ -98,7 +76,6 @@ class _DislexiaAppState extends State<DislexiaApp> {
   @override
   void initState() {
     super.initState();
-    // Carrega configurações de acessibilidade salvas
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AccessibilityProvider>().loadSettings();
     });
@@ -106,14 +83,12 @@ class _DislexiaAppState extends State<DislexiaApp> {
 
   @override
   Widget build(BuildContext context) {
-    // Observa mudanças nas configurações de acessibilidade
     final accessibilityProvider = context.watch<AccessibilityProvider>();
 
     return MaterialApp(
       title: 'Letrinhas',
       debugShowCheckedModeBanner: false,
 
-      // Tema dinâmico baseado nas configurações de acessibilidade
       theme: accessibilityProvider.highContrast
           ? AppTheme.getHighContrastTheme(
               useDyslexicFont: accessibilityProvider.useDyslexicFont,
@@ -124,17 +99,15 @@ class _DislexiaAppState extends State<DislexiaApp> {
               fontSizeMultiplier: accessibilityProvider.fontSize,
             ),
 
-      // Tela inicial do app
       initialRoute: '/',
 
-      // Definição de rotas nomeadas para navegação
       routes: {
         '/': (context) => const SplashPage(),
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const HomePage(),
 
-        // Atividades protegidas por nível (sistema de progressão)
+        // Atividades protegidas por nível
         '/activity-vowels-consonants': (context) => const ProtectedActivity(
               activityId: Activities.vowelsConsonantsId,
               child: ActivityVowelsConsonants(),

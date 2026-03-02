@@ -46,8 +46,8 @@ class _HomePageState extends State<HomePage> {
           userProvider.updateProgress(
             totalPoints: userData.totalPoints,
             activitiesCompleted: userData.activitiesCompleted,
-            level: userData.level, // Atualiza nível no provider
-            progress: userData.progress, // Atualiza progresso no provider
+            level: userData.level,
+            progress: userData.progress,
           );
         }
       } catch (e) {
@@ -62,7 +62,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Obtém dados do usuário logado
     final userProvider = Provider.of<UserProvider>(context);
     final userName = userProvider.userName ?? 'Usuário';
     final userLevel = _userData?.level ?? 1;

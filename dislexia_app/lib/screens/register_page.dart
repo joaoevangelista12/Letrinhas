@@ -15,25 +15,17 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  // Controladores para os campos de texto
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-
-  // Chave para validação do formulário
   final _formKey = GlobalKey<FormState>();
-
-  // Controla visibilidade das senhas
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-
-  // Indicador de carregamento
   bool _isLoading = false;
 
   @override
   void dispose() {
-    // Libera recursos dos controladores
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();

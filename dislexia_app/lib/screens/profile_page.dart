@@ -11,7 +11,6 @@ import '../services/report_service.dart';
 import '../models/user_model.dart';
 import '../models/activity_model.dart';
 import '../models/time_stats_model.dart';
-import '../providers/accessibility_provider.dart';
 
 /// Tela de Perfil e Progresso
 /// Exibe informações do usuário e progresso detalhado em cada atividade
@@ -173,7 +172,6 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
-    final accessibilityProvider = context.watch<AccessibilityProvider>();
 
     return Scaffold(
       appBar: AppBar(

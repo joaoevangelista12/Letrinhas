@@ -17,22 +17,14 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // Controladores para os campos de texto
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  // Chave para validação do formulário
   final _formKey = GlobalKey<FormState>();
-
-  // Controla visibilidade da senha
   bool _obscurePassword = true;
-
-  // Indicador de carregamento
   bool _isLoading = false;
 
   @override
   void dispose() {
-    // Libera recursos dos controladores
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
