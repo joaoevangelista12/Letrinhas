@@ -7,24 +7,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Provider para gerenciar configurações de acessibilidade
 /// Permite personalizar a experiência para usuários com dislexia
 class AccessibilityProvider extends ChangeNotifier {
-  // Configurações
   bool _highContrast = false;
   bool _useDyslexicFont = true;
   double _fontSize = 1.0; // Multiplicador (0.8, 1.0, 1.2, 1.4)
   double _iconSize = 1.0; // Multiplicador (1.0, 1.2, 1.4)
   bool _enableAnimations = true;
 
-  // Timer para debouncing de salvamentos (otimização de performance)
+  // Timer para debouncing dos sliders de tamanho
   Timer? _debounceTimer;
 
-  // Chaves para SharedPreferences
   static const String _keyHighContrast = 'high_contrast';
   static const String _keyDyslexicFont = 'dyslexic_font';
   static const String _keyFontSize = 'font_size';
   static const String _keyIconSize = 'icon_size';
   static const String _keyAnimations = 'enable_animations';
 
-  // Getters
   bool get highContrast => _highContrast;
   bool get useDyslexicFont => _useDyslexicFont;
   double get fontSize => _fontSize;
@@ -113,7 +110,6 @@ class AccessibilityProvider extends ChangeNotifier {
       await prefs.setDouble(_keyFontSize, _fontSize);
       await prefs.setDouble(_keyIconSize, _iconSize);
       await prefs.setBool(_keyAnimations, _enableAnimations);
-      debugPrint('✅ Configurações salvas');
     } catch (e) {
       debugPrint('❌ Erro ao salvar configurações: $e');
     }

@@ -7,16 +7,10 @@ import 'firestore_service.dart';
 /// Serviço de Autenticação do Firebase
 /// Centraliza todas as operações de autenticação
 class AuthService {
-  // Instância do FirebaseAuth
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  // Instância do FirestoreService
   final FirestoreService _firestoreService = FirestoreService();
 
-  // Stream do estado de autenticação
   Stream<User?> get authStateChanges => _auth.authStateChanges();
-
-  // Usuário atual
   User? get currentUser => _auth.currentUser;
 
   /// Faz login com email e senha

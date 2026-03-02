@@ -9,10 +9,8 @@ import '../models/time_stats_model.dart';
 /// Centraliza todas as operações de banco de dados
 /// IMPORTANTE: Implementa validação de níveis para acesso às atividades
 class FirestoreService {
-  // Instância do Firestore
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Nome da coleção de usuários
   static const String usersCollection = 'users';
   static const String activitiesCollection = 'activities';
   static const String timeStatsCollection = 'time_stats';
@@ -40,7 +38,7 @@ class FirestoreService {
           uid: uid,
           name: name,
           email: email,
-          level: 1, // TODO USUÁRIO NOVO INICIA NO NÍVEL 1
+          level: 1,
           createdAt: DateTime.now(),
           lastLoginAt: DateTime.now(),
         );
