@@ -2,7 +2,6 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
-import '../models/activity_model.dart';
 import '../models/time_stats_model.dart';
 
 /// Serviço para gerenciar operações do Firestore
@@ -108,32 +107,47 @@ class FirestoreService {
         throw Exception('Usuário não encontrado');
       }
 
-      // 2. REGRA: só a atividade correspondente ao nível atual altera pontos.
-      // Atividades de níveis anteriores ou posteriores ficam em modo prática.
-      final activityModel = Activities.getById(activityId);
-      final bool isCurrentLevelActivity =
-          activityModel != null && activityModel.requiredLevel == userData.level;
-      final int effectivePoints = isCurrentLevelActivity ? points : 0;
+      // 2. Mantém a pontuação da tentativa atual dentro de um intervalo seguro.
+      final int effectivePoints = points.clamp(0, 100).toInt();
 
-      // 3. CALCULA NOVO TOTAL DE PONTOS (nunca negativo)
-      int newTotalPoints = userData.totalPoints + effectivePoints;
-      if (newTotalPoints < 0) {
-        newTotalPoints = 0;
+      // 3. Atualiza pontuação por atividade (sobrescreve tentativa anterior)
+      final Map<String, int> activityPoints = {
+        ...(userData.activityPoints ?? <String, int>{}),
+      };
+      activityPoints[activityId] = effectivePoints;
+
+      // 4. Recalcula pontuação total com base na última pontuação de cada atividade
+      int newTotalPoints = activityPoints.values.fold(0, (sum, v) => sum + v);
+      if (newTotalPoints < 0) newTotalPoints = 0;
+
+      // 5. Recalcula desbloqueio sequencial com base no último resultado
+      const List<String> orderedActivities = [
+        'vowels-consonants',
+        'recognize-letters',
+        'syllabic',
+        'form-word',
+        'match-image',
+      ];
+
+      int newLevel = 1;
+      for (int i = 0; i < orderedActivities.length; i++) {
+        final int score = activityPoints[orderedActivities[i]] ?? 0;
+        if (score == 100) {
+          if (i == orderedActivities.length - 1) {
+            newLevel = orderedActivities.length;
+          }
+          continue;
+        }
+        newLevel = i + 1;
+        break;
       }
 
-      // 4. CALCULA NÍVEL BASEADO NO TOTAL DE PONTOS (bidirecional)
-      // Level 1: 0-99, Level 2: 100-199, Level 3: 200-299, Level 4: 300-399, Level 5: 400+
-      // Nível máximo = 5 (temos 5 atividades)
-      int newLevel = (newTotalPoints ~/ 100) + 1;
-      if (newLevel > 5) newLevel = 5;
-
-      // 5. CALCULA PROGRESSO DENTRO DO NÍVEL (0-99)
-      final int newProgress = newTotalPoints % 100;
+      // 6. Progresso pode refletir a última tentativa da atividade atual.
+      final int newProgress = effectivePoints;
 
       final userRef = _firestore.collection(usersCollection).doc(uid);
 
-      // 6. PREPARA REGISTRO DA ATIVIDADE (ID único por conclusão)
-      // effectivePoints = 0 quando atividade está em modo prática (fora do nível atual)
+      // 7. PREPARA REGISTRO DA ATIVIDADE (ID único por conclusão)
       final now = DateTime.now();
       final docId = '$activityId-${now.millisecondsSinceEpoch}';
       final activityProgress = ActivityProgress(
@@ -146,8 +160,9 @@ class FirestoreService {
         durationSeconds: durationSeconds,
       );
 
-      // 7. ATUALIZA SUBCOLEÇÃO E DOCUMENTO DO USUÁRIO EM BATCH ATÔMICO
+      // 8. ATUALIZA SUBCOLEÇÃO E DOCUMENTO DO USUÁRIO EM BATCH ATÔMICO
       final Map<String, dynamic> updateData = {
+        'activityPoints': activityPoints,
         'totalPoints': newTotalPoints,
         'activitiesCompleted': FieldValue.increment(1),
         'completedActivities': FieldValue.arrayUnion([activityId]),
@@ -163,7 +178,7 @@ class FirestoreService {
       batch.update(userRef, updateData);
       await batch.commit();
 
-      // 8. ATUALIZA ESTATÍSTICAS DE TEMPO (operação separada, não bloqueia pontuação)
+      // 9. ATUALIZA ESTATÍSTICAS DE TEMPO (operação separada, não bloqueia pontuação)
       await _updateTimeStats(
         uid: uid,
         activityId: activityId,
@@ -326,6 +341,7 @@ class FirestoreService {
   Future<void> resetUserProgress(String uid) async {
     try {
       await _firestore.collection(usersCollection).doc(uid).update({
+        'activityPoints': {},
         'totalPoints': 0,
         'activitiesCompleted': 0,
         'completedActivities': [],

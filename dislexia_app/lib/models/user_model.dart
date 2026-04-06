@@ -11,6 +11,7 @@ class UserModel {
   final int totalPoints;
   final int activitiesCompleted;
   final List<String> completedActivities;
+  final Map<String, int>? activityPoints;
   final int level; // Nível explícito do usuário (1, 2, 3...)
   final int progress; // Progresso dentro do nível (0-100)
   final DateTime createdAt;
@@ -23,6 +24,7 @@ class UserModel {
     this.totalPoints = 0,
     this.activitiesCompleted = 0,
     this.completedActivities = const [],
+    this.activityPoints,
     this.level = 1, // Todo usuário novo inicia no nível 1
     this.progress = 0, // Todo usuário novo inicia com 0 de progresso
     required this.createdAt,
@@ -39,6 +41,9 @@ class UserModel {
       totalPoints: data['totalPoints'] ?? 0,
       activitiesCompleted: data['activitiesCompleted'] ?? 0,
       completedActivities: List<String>.from(data['completedActivities'] ?? []),
+      activityPoints: (data['activityPoints'] as Map<String, dynamic>?)?.map(
+        (key, value) => MapEntry(key, (value as num?)?.toInt() ?? 0),
+      ),
       level: data['level'] ?? 1, // Garante nível 1 se não existir
       progress: data['progress'] ?? 0, // Garante progresso 0 se não existir
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -54,6 +59,7 @@ class UserModel {
       'totalPoints': totalPoints,
       'activitiesCompleted': activitiesCompleted,
       'completedActivities': completedActivities,
+      'activityPoints': activityPoints,
       'level': level, // Salva nível explicitamente
       'progress': progress, // Salva progresso explicitamente (0-100)
       'createdAt': Timestamp.fromDate(createdAt),
@@ -69,6 +75,7 @@ class UserModel {
     int? totalPoints,
     int? activitiesCompleted,
     List<String>? completedActivities,
+    Map<String, int>? activityPoints,
     int? level,
     int? progress,
     DateTime? createdAt,
@@ -81,6 +88,7 @@ class UserModel {
       totalPoints: totalPoints ?? this.totalPoints,
       activitiesCompleted: activitiesCompleted ?? this.activitiesCompleted,
       completedActivities: completedActivities ?? this.completedActivities,
+      activityPoints: activityPoints ?? this.activityPoints,
       level: level ?? this.level,
       progress: progress ?? this.progress,
       createdAt: createdAt ?? this.createdAt,
