@@ -93,10 +93,12 @@ class _DislexiaAppState extends State<DislexiaApp> {
           ? AppTheme.getHighContrastTheme(
               useDyslexicFont: accessibilityProvider.useDyslexicFont,
               fontSizeMultiplier: accessibilityProvider.fontSize,
+              iconSizeMultiplier: accessibilityProvider.iconSize,
             )
           : AppTheme.getColorfulTheme(
               useDyslexicFont: accessibilityProvider.useDyslexicFont,
               fontSizeMultiplier: accessibilityProvider.fontSize,
+              iconSizeMultiplier: accessibilityProvider.iconSize,
             ),
 
       initialRoute: '/',

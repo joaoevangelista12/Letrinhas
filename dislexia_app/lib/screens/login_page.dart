@@ -1,6 +1,7 @@
 // arquivo: lib/screens/login_page.dart
 
 import 'package:flutter/material.dart';
+import '../utils/accessibility_scaler.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../widgets/custom_button.dart';
@@ -112,18 +113,18 @@ class _LoginPageState extends State<LoginPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Email não verificado'),
+        title: Text('Email não verificado'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.mark_email_unread_outlined, size: 48, color: Colors.orange),
+            Icon(Icons.mark_email_unread_outlined, size: context.scaleIcon(48), color: Colors.orange),
             const SizedBox(height: 16),
             Text(
               'O email $email ainda não foi verificado.',
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Verifique sua caixa de entrada (e a pasta de spam) e clique no link de ativação.',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey),
@@ -133,14 +134,14 @@ class _LoginPageState extends State<LoginPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fechar'),
+            child: Text('Fechar'),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.of(context).pop();
               await _resendVerificationEmail(email);
             },
-            child: const Text('Reenviar email'),
+            child: Text('Reenviar email'),
           ),
         ],
       ),
@@ -189,11 +190,11 @@ class _LoginPageState extends State<LoginPage> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
-          title: const Text('Redefinir Senha'),
+          title: Text('Redefinir Senha'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'Digite seu email para receber as instruções de redefinição de senha.',
               ),
               const SizedBox(height: 16),
@@ -203,7 +204,7 @@ class _LoginPageState extends State<LoginPage> {
                 decoration: InputDecoration(
                   labelText: 'Email',
                   hintText: 'seu@email.com',
-                  prefixIcon: const Icon(Icons.email_outlined),
+                  prefixIcon: Icon(Icons.email_outlined),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -214,7 +215,7 @@ class _LoginPageState extends State<LoginPage> {
           actions: [
             TextButton(
               onPressed: isSending ? null : () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancelar'),
+              child: Text('Cancelar'),
             ),
             ElevatedButton(
               onPressed: isSending
@@ -256,7 +257,7 @@ class _LoginPageState extends State<LoginPage> {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Enviar'),
+                  : Text('Enviar'),
             ),
           ],
         ),
@@ -287,7 +288,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   child: Icon(
                     Icons.book_outlined,
-                    size: 50,
+                    size: context.scaleIcon(50),
                     color: Theme.of(context).primaryColor,
                   ),
                 ),
@@ -318,7 +319,7 @@ class _LoginPageState extends State<LoginPage> {
                   decoration: InputDecoration(
                     labelText: 'Email',
                     hintText: 'seu@email.com',
-                    prefixIcon: const Icon(Icons.email_outlined),
+                    prefixIcon: Icon(Icons.email_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -335,7 +336,7 @@ class _LoginPageState extends State<LoginPage> {
                   decoration: InputDecoration(
                     labelText: 'Senha',
                     hintText: 'Mínimo 6 caracteres',
-                    prefixIcon: const Icon(Icons.lock_outlined),
+                    prefixIcon: Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
@@ -372,7 +373,7 @@ class _LoginPageState extends State<LoginPage> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: _showResetPasswordDialog,
-                    child: const Text('Esqueci minha senha'),
+                    child: Text('Esqueci minha senha'),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -389,7 +390,7 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed: () {
                         Navigator.of(context).pushNamed('/register');
                       },
-                      child: const Text(
+                      child: Text(
                         'Cadastre-se',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),

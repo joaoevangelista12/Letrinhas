@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../utils/accessibility_scaler.dart';
 import 'package:confetti/confetti.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
@@ -425,7 +426,7 @@ class _ActivityRecognizeLettersState extends State<ActivityRecognizeLetters>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reconhecendo Letras'),
+        title: Text('Reconhecendo Letras'),
         centerTitle: true,
       ),
       body: Stack(
@@ -521,14 +522,14 @@ class _ActivityRecognizeLettersState extends State<ActivityRecognizeLetters>
               ),
               child: Row(
                 children: [
-                  Icon(Icons.star, color: Colors.amber.shade700, size: 20),
+                  Icon(Icons.star, color: Colors.amber.shade700, size: context.scaleIcon(20)),
                   const SizedBox(width: 4),
                   Text(
                     '$_score pts',
                     style: TextStyle(
                       color: Colors.amber.shade900,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: context.scaleFont(16),
                     ),
                   ),
                 ],
@@ -648,14 +649,14 @@ class _ActivityRecognizeLettersState extends State<ActivityRecognizeLetters>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 32),
+            Icon(icon, color: Colors.white, size: context.scaleIcon(32)),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: context.scaleFont(20),
                   fontWeight: FontWeight.bold,
                 ),
               ),

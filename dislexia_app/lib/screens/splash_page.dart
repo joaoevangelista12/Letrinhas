@@ -1,6 +1,7 @@
 // arquivo: lib/screens/splash_page.dart
 
 import 'package:flutter/material.dart';
+import '../utils/accessibility_scaler.dart';
 import 'dart:async';
 
 /// Tela inicial (Splash Screen)
@@ -82,19 +83,19 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                       ),
                     ],
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.book_outlined,
-                    size: 60,
+                    size: context.scaleIcon(60),
                     color: Color(0xFF2196F3),
                   ),
                 ),
                 const SizedBox(height: 32),
 
                 // Nome do app
-                const Text(
+                Text(
                   'Letrinhas',
                   style: TextStyle(
-                    fontSize: 36,
+                    fontSize: context.scaleFont(36),
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                     letterSpacing: 1.2,
@@ -103,10 +104,10 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                 const SizedBox(height: 8),
 
                 // Subtítulo
-                const Text(
+                Text(
                   'Aprendendo com diversão',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: context.scaleFont(18),
                     color: Colors.white70,
                     letterSpacing: 0.5,
                   ),

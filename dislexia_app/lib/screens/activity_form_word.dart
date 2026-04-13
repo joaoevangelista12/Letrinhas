@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../utils/accessibility_scaler.dart';
 import 'package:confetti/confetti.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
@@ -419,7 +420,7 @@ class _ActivityFormWordState extends State<ActivityFormWord>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Formar Palavra'),
+        title: Text('Formar Palavra'),
         centerTitle: true,
       ),
       body: Stack(
@@ -673,14 +674,14 @@ class _ActivityFormWordState extends State<ActivityFormWord>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 32),
+            Icon(icon, color: Colors.white, size: context.scaleIcon(32)),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: context.scaleFont(20),
                   fontWeight: FontWeight.bold,
                 ),
               ),

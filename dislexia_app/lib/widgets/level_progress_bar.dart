@@ -1,6 +1,9 @@
 // arquivo: lib/widgets/level_progress_bar.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/accessibility_provider.dart';
+import '../utils/accessibility_scaler.dart';
 
 /// Widget visual de barra de progresso de nível para crianças.
 ///
@@ -58,7 +61,7 @@ class LevelProgressBar extends StatelessWidget {
                 Icon(
                   Icons.emoji_events,
                   color: _getLevelColor(level),
-                  size: 24,
+                  size: context.scaleIcon(24),
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -134,7 +137,7 @@ class LevelProgressBar extends StatelessWidget {
                 child: Icon(
                   Icons.star,
                   color: Colors.white,
-                  size: 16,
+                  size: context.scaleIcon(16),
                   shadows: [
                     Shadow(
                       color: Colors.black.withOpacity(0.3),
@@ -214,7 +217,7 @@ class LevelProgressBar extends StatelessWidget {
       children: [
         Icon(
           icon,
-          size: 16,
+          size: context.scaleIcon(16),
           color: color,
         ),
         const SizedBox(width: 4),
@@ -268,7 +271,7 @@ class CompactLevelProgress extends StatelessWidget {
           Icon(
             Icons.emoji_events,
             color: _getLevelColor(level),
-            size: 16,
+            size: context.scaleIcon(16),
           ),
           const SizedBox(width: 6),
           Text(
@@ -276,7 +279,7 @@ class CompactLevelProgress extends StatelessWidget {
             style: TextStyle(
               color: _getLevelColor(level),
               fontWeight: FontWeight.bold,
-              fontSize: 12,
+              fontSize: context.scaleFont(12),
             ),
           ),
           const SizedBox(width: 8),
@@ -305,7 +308,7 @@ class CompactLevelProgress extends StatelessWidget {
             style: TextStyle(
               color: _getLevelColor(level),
               fontWeight: FontWeight.w600,
-              fontSize: 11,
+              fontSize: context.scaleFont(11),
             ),
           ),
         ],

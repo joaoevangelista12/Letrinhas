@@ -1,6 +1,7 @@
 // arquivo: lib/screens/register_page.dart
 
 import 'package:flutter/material.dart';
+import '../utils/accessibility_scaler.dart';
 import '../widgets/custom_button.dart';
 import '../services/auth_service.dart';
 
@@ -104,11 +105,11 @@ class _RegisterPageState extends State<RegisterPage> {
         context: context,
         barrierDismissible: false,
         builder: (context) => AlertDialog(
-          title: const Text('Verifique seu email'),
+          title: Text('Verifique seu email'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.mark_email_read_outlined, size: 56, color: Colors.green),
+              Icon(Icons.mark_email_read_outlined, size: context.scaleIcon(56), color: Colors.green),
               const SizedBox(height: 16),
               Text(
                 result.message,
@@ -119,7 +120,7 @@ class _RegisterPageState extends State<RegisterPage> {
           actions: [
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Ok, entendi'),
+              child: Text('Ok, entendi'),
             ),
           ],
         ),
@@ -158,7 +159,7 @@ class _RegisterPageState extends State<RegisterPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -195,7 +196,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   decoration: InputDecoration(
                     labelText: 'Nome completo',
                     hintText: 'Seu nome',
-                    prefixIcon: const Icon(Icons.person_outlined),
+                    prefixIcon: Icon(Icons.person_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -212,7 +213,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   decoration: InputDecoration(
                     labelText: 'Email',
                     hintText: 'seu@email.com',
-                    prefixIcon: const Icon(Icons.email_outlined),
+                    prefixIcon: Icon(Icons.email_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -229,7 +230,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   decoration: InputDecoration(
                     labelText: 'Senha',
                     hintText: 'Mínimo 6 caracteres',
-                    prefixIcon: const Icon(Icons.lock_outlined),
+                    prefixIcon: Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
@@ -258,7 +259,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   decoration: InputDecoration(
                     labelText: 'Confirmar senha',
                     hintText: 'Digite a senha novamente',
-                    prefixIcon: const Icon(Icons.lock_outlined),
+                    prefixIcon: Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureConfirmPassword
@@ -302,7 +303,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: const Text(
+                      child: Text(
                         'Entrar',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),

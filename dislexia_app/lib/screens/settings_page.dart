@@ -1,6 +1,7 @@
 // arquivo: lib/screens/settings_page.dart
 
 import 'package:flutter/material.dart';
+import '../utils/accessibility_scaler.dart';
 import 'package:provider/provider.dart';
 import '../providers/accessibility_provider.dart';
 
@@ -16,7 +17,7 @@ class SettingsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configurações'),
+        title: Text('Configurações'),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -80,7 +81,7 @@ class SettingsPage extends StatelessWidget {
         children: [
           Icon(
             Icons.accessibility_new,
-            size: 48,
+            size: context.scaleIcon(48),
             color: Theme.of(context).primaryColor,
           ),
           const SizedBox(width: 16),
@@ -111,7 +112,7 @@ class SettingsPage extends StatelessWidget {
   Widget _buildSectionTitle(BuildContext context, String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: 24, color: Theme.of(context).primaryColor),
+        Icon(icon, size: context.scaleIcon(24), color: Theme.of(context).primaryColor),
         const SizedBox(width: 12),
         Text(
           title,
@@ -179,7 +180,7 @@ class SettingsPage extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(Icons.text_fields, size: 16),
+              Icon(Icons.text_fields, size: context.scaleIcon(16)),
               Expanded(
                 child: Slider(
                   value: provider.fontSize,
@@ -191,7 +192,7 @@ class SettingsPage extends StatelessWidget {
                   activeColor: Theme.of(context).primaryColor,
                 ),
               ),
-              const Icon(Icons.text_fields, size: 32),
+              Icon(Icons.text_fields, size: context.scaleIcon(32)),
             ],
           ),
           // Exemplo de texto
@@ -228,7 +229,7 @@ class SettingsPage extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(Icons.star, size: 20),
+              Icon(Icons.star, size: context.scaleIcon(20)),
               Expanded(
                 child: Slider(
                   value: provider.iconSize,
@@ -291,7 +292,7 @@ class SettingsPage extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 28, color: Theme.of(context).primaryColor),
+              Icon(icon, size: context.scaleIcon(28), color: Theme.of(context).primaryColor),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -333,18 +334,18 @@ class SettingsPage extends StatelessWidget {
           final confirm = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Restaurar Padrões'),
-              content: const Text(
+              title: Text('Restaurar Padrões'),
+              content: Text(
                 'Isso irá restaurar todas as configurações de acessibilidade para os valores padrão. Deseja continuar?',
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancelar'),
+                  child: Text('Cancelar'),
                 ),
                 ElevatedButton(
                   onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Restaurar'),
+                  child: Text('Restaurar'),
                 ),
               ],
             ),
@@ -362,8 +363,8 @@ class SettingsPage extends StatelessWidget {
             }
           }
         },
-        icon: const Icon(Icons.restore),
-        label: const Text('Restaurar Padrões'),
+        icon: Icon(Icons.restore),
+        label: Text('Restaurar Padrões'),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.grey.shade600,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -384,7 +385,7 @@ class SettingsPage extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline, color: Colors.blue.shade700, size: 28),
+          Icon(Icons.info_outline, color: Colors.blue.shade700, size: context.scaleIcon(28)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
