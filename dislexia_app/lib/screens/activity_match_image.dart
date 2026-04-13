@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../utils/accessibility_scaler.dart';
 import 'package:confetti/confetti.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
@@ -685,14 +686,14 @@ class _ActivityMatchImageState extends State<ActivityMatchImage>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 28),
+            Icon(icon, color: Colors.white, size: context.scaleIcon(28)),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: context.scaleFont(16),
                   fontWeight: FontWeight.bold,
                 ),
               ),

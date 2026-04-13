@@ -1,6 +1,7 @@
 // arquivo: lib/screens/profile_page.dart
 
 import 'package:flutter/material.dart';
+import '../utils/accessibility_scaler.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
@@ -175,7 +176,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Meu Perfil'),
+        title: Text('Meu Perfil'),
         centerTitle: true,
       ),
       floatingActionButton: _userData != null
@@ -190,10 +191,10 @@ class _ProfilePageState extends State<ProfilePage> {
                         color: Colors.white,
                       ),
                     )
-                  : const Icon(Icons.picture_as_pdf),
+                  : Icon(Icons.picture_as_pdf),
               label: Text(
                 _isGeneratingReport ? 'Gerando...' : 'Gerar Relatorio',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
               backgroundColor: _isGeneratingReport
                   ? Colors.grey
@@ -292,7 +293,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             child: Icon(
               Icons.person,
-              size: 40,
+              size: context.scaleIcon(40),
               color: Theme.of(context).primaryColor,
             ),
           ),
@@ -329,14 +330,14 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.emoji_events, color: Colors.amber, size: 20),
+                      Icon(Icons.emoji_events, color: Colors.amber, size: context.scaleIcon(20)),
                       const SizedBox(width: 6),
                       Text(
                         'Nível ${userProvider.level}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: context.scaleFont(14),
                         ),
                       ),
                     ],
@@ -408,12 +409,12 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 32),
+          Icon(icon, color: color, size: context.scaleIcon(32)),
           const SizedBox(height: 8),
           Text(
             value,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: context.scaleFont(20),
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -422,7 +423,7 @@ class _ProfilePageState extends State<ProfilePage> {
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: context.scaleFont(12),
               color: Colors.grey.shade700,
             ),
             textAlign: TextAlign.center,
@@ -490,7 +491,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ? 'Voce alcancou o nivel maximo!'
                 : 'Faltam ${100 - (userProvider.levelProgress * 100).toInt()} pontos para o nivel ${userProvider.level + 1}',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: context.scaleFont(13),
               color: Colors.grey.shade600,
             ),
           ),
@@ -503,7 +504,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildSectionTitle(String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, color: Theme.of(context).primaryColor, size: 28),
+        Icon(icon, color: Theme.of(context).primaryColor, size: context.scaleIcon(28)),
         const SizedBox(width: 12),
         Text(
           title,
@@ -576,7 +577,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Icon(
                   activity['icon'],
                   color: activity['color'],
-                  size: 28,
+                  size: context.scaleIcon(28),
                 ),
               ),
               const SizedBox(width: 16),
@@ -597,14 +598,14 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: [
                         Icon(
                           isCompleted ? Icons.check_circle : Icons.circle_outlined,
-                          size: 16,
+                          size: context.scaleIcon(16),
                           color: isCompleted ? Colors.green : Colors.grey,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           isCompleted ? 'Completada' : 'Não completada',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: context.scaleFont(13),
                             color: isCompleted ? Colors.green : Colors.grey,
                             fontWeight: FontWeight.w600,
                           ),
@@ -627,11 +628,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 16),
+                      Icon(Icons.star, color: Colors.amber, size: context.scaleIcon(16)),
                       const SizedBox(width: 4),
                       Text(
                         '${progress!.points}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
                         ),
@@ -687,19 +688,19 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildDetailItem(String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, size: 20, color: Colors.grey.shade600),
+        Icon(icon, size: context.scaleIcon(20), color: Colors.grey.shade600),
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 14,
+            fontSize: context.scaleFont(14),
           ),
         ),
         Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: context.scaleFont(11),
             color: Colors.grey.shade600,
           ),
         ),
@@ -737,10 +738,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     color: Colors.green.shade100,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.check_circle,
                     color: Colors.green,
-                    size: 24,
+                    size: context.scaleIcon(24),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -752,16 +753,16 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       Text(
                         activity.activityName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: context.scaleFont(14),
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         _formatDateTime(activity.completedAt),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: context.scaleFont(12),
                           color: Colors.grey.shade600,
                         ),
                       ),
@@ -779,13 +780,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 16),
+                      Icon(Icons.star, color: Colors.amber, size: context.scaleIcon(16)),
                       const SizedBox(width: 4),
                       Text(
                         '+${activity.points}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                          fontSize: context.scaleFont(12),
                         ),
                       ),
                     ],

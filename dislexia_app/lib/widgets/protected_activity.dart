@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/accessibility_provider.dart';
+import '../utils/accessibility_scaler.dart';
 import '../main.dart';
 import '../models/activity_model.dart';
 import '../services/firestore_service.dart';
@@ -125,7 +127,7 @@ class _ProtectedActivityState extends State<ProtectedActivity> {
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Carregando...'),
+          title: Text('Carregando...'),
         ),
         body: const Center(
           child: CircularProgressIndicator(),
@@ -137,7 +139,7 @@ class _ProtectedActivityState extends State<ProtectedActivity> {
     if (!_hasAccess) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Acesso Negado'),
+          title: Text('Acesso Negado'),
           backgroundColor: Colors.red[700],
         ),
         body: Center(
@@ -148,7 +150,7 @@ class _ProtectedActivityState extends State<ProtectedActivity> {
               children: [
                 Icon(
                   Icons.lock_outline,
-                  size: 80,
+                  size: context.scaleIcon(80),
                   color: Colors.red[700],
                 ),
                 const SizedBox(height: 24),
@@ -203,8 +205,8 @@ class _ProtectedActivityState extends State<ProtectedActivity> {
                 const SizedBox(height: 32),
                 ElevatedButton.icon(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.arrow_back),
-                  label: const Text('Voltar'),
+                  icon: Icon(Icons.arrow_back),
+                  label: Text('Voltar'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 32,

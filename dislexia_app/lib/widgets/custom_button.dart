@@ -1,6 +1,7 @@
 // arquivo: lib/widgets/custom_button.dart
 
 import 'package:flutter/material.dart';
+import '../utils/accessibility_scaler.dart';
 
 /// Widget de botão customizado
 /// Usado em todo o app para manter consistência visual
@@ -41,7 +42,7 @@ class CustomButton extends StatelessWidget {
           ),
           side: BorderSide(color: bgColor, width: 2),
         ),
-        child: _buildButtonContent(bgColor),
+        child: _buildButtonContent(context, bgColor),
       );
     }
 
@@ -58,12 +59,12 @@ class CustomButton extends StatelessWidget {
         elevation: 4,
         shadowColor: bgColor.withOpacity(0.4),
       ),
-      child: _buildButtonContent(txtColor),
+      child: _buildButtonContent(context, txtColor),
     );
   }
 
   /// Constrói o conteúdo do botão (texto + ícone opcional + loading)
-  Widget _buildButtonContent(Color contentColor) {
+  Widget _buildButtonContent(BuildContext context, Color contentColor) {
     if (isLoading) {
       return SizedBox(
         height: 20,
@@ -80,12 +81,12 @@ class CustomButton extends StatelessWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 20),
+          Icon(icon, size: context.scaleIcon(20)),
           const SizedBox(width: 8),
           Text(
             text,
-            style: const TextStyle(
-              fontSize: 16,
+            style: TextStyle(
+              fontSize: context.scaleFont(16),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -96,8 +97,8 @@ class CustomButton extends StatelessWidget {
     // Botão apenas com texto
     return Text(
       text,
-      style: const TextStyle(
-        fontSize: 16,
+      style: TextStyle(
+        fontSize: context.scaleFont(16),
         fontWeight: FontWeight.bold,
       ),
     );

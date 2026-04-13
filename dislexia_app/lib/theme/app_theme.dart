@@ -23,6 +23,7 @@ class AppTheme {
   static ThemeData getColorfulTheme({
     required bool useDyslexicFont,
     required double fontSizeMultiplier,
+    required double iconSizeMultiplier,
   }) {
     return ThemeData(
       useMaterial3: true,
@@ -120,9 +121,9 @@ class AppTheme {
       ),
 
       // Ícones
-      iconTheme: const IconThemeData(
+      iconTheme: IconThemeData(
         color: primaryColorful,
-        size: 28,
+        size: 28 * iconSizeMultiplier,
       ),
     );
   }
@@ -131,6 +132,7 @@ class AppTheme {
   static ThemeData getHighContrastTheme({
     required bool useDyslexicFont,
     required double fontSizeMultiplier,
+    required double iconSizeMultiplier,
   }) {
     return ThemeData(
       useMaterial3: true,
@@ -235,9 +237,9 @@ class AppTheme {
       ),
 
       // Ícones alto contraste
-      iconTheme: const IconThemeData(
+      iconTheme: IconThemeData(
         color: primaryHighContrast,
-        size: 32,
+        size: 32 * iconSizeMultiplier,
       ),
     );
   }

@@ -1,6 +1,7 @@
 // arquivo: lib/screens/home_page.dart
 
 import 'package:flutter/material.dart';
+import '../utils/accessibility_scaler.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../services/auth_service.dart';
@@ -68,12 +69,12 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Letrinhas'),
+        title: Text('Letrinhas'),
         elevation: 0,
         actions: [
           // Botão de configurações
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: Icon(Icons.settings),
             tooltip: 'Configurações',
             onPressed: () {
               Navigator.of(context).pushNamed('/settings');
@@ -81,7 +82,7 @@ class _HomePageState extends State<HomePage> {
           ),
           // Botão de logout
           IconButton(
-            icon: const Icon(Icons.exit_to_app),
+            icon: Icon(Icons.exit_to_app),
             tooltip: 'Sair',
             onPressed: () {
               _showLogoutDialog(context, userProvider);
@@ -109,7 +110,7 @@ class _HomePageState extends State<HomePage> {
               Text(
                 'Atividades',
                 style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                      fontSize: 24,
+                      fontSize: context.scaleFont(24),
                     ),
               ),
               const SizedBox(height: 8),
@@ -151,7 +152,7 @@ class _HomePageState extends State<HomePage> {
         // Título da seção
         Row(
           children: [
-            Icon(Icons.trending_up, color: Colors.orange.shade700, size: 20),
+            Icon(Icons.trending_up, color: Colors.orange.shade700, size: context.scaleIcon(20)),
             const SizedBox(width: 8),
             Text(
               'Seu Progresso',
@@ -254,7 +255,7 @@ class _HomePageState extends State<HomePage> {
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: context.scaleFont(12),
               color: Colors.grey.shade700,
             ),
             textAlign: TextAlign.center,
@@ -278,7 +279,7 @@ class _HomePageState extends State<HomePage> {
         ),
         child: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green.shade700, size: 32),
+            Icon(Icons.check_circle, color: Colors.green.shade700, size: context.scaleIcon(32)),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -287,7 +288,7 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     'Parabéns! 🎉',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: context.scaleFont(16),
                       fontWeight: FontWeight.bold,
                       color: Colors.green.shade900,
                     ),
@@ -296,7 +297,7 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     'Você completou todas as atividades disponíveis!',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: context.scaleFont(14),
                       color: Colors.green.shade800,
                     ),
                   ),
@@ -320,7 +321,7 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Row(
         children: [
-          Icon(Icons.lock_outline, color: Colors.blue.shade700, size: 32),
+          Icon(Icons.lock_outline, color: Colors.blue.shade700, size: context.scaleIcon(32)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -329,7 +330,7 @@ class _HomePageState extends State<HomePage> {
                 Text(
                   'Próximo Desafio',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: context.scaleFont(14),
                     fontWeight: FontWeight.bold,
                     color: Colors.blue.shade900,
                   ),
@@ -338,7 +339,7 @@ class _HomePageState extends State<HomePage> {
                 Text(
                   'Chegue ao nível $nextLevel para desbloquear:\n${nextActivity.name}',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: context.scaleFont(13),
                     color: Colors.blue.shade800,
                   ),
                 ),
@@ -388,9 +389,9 @@ class _HomePageState extends State<HomePage> {
                   color: Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.person,
-                  size: 32,
+                  size: context.scaleIcon(32),
                   color: Color(0xFF2196F3),
                 ),
               ),
@@ -406,9 +407,9 @@ class _HomePageState extends State<HomePage> {
                   ),
                   child: Text(
                     '$userLevel',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 12,
+                      fontSize: context.scaleFont(12),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -423,19 +424,19 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Olá,',
                   style: TextStyle(
                     color: Colors.white70,
-                    fontSize: 16,
+                    fontSize: context.scaleFont(16),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   userName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 24,
+                    fontSize: context.scaleFont(24),
                     fontWeight: FontWeight.bold,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -443,9 +444,9 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 4),
                 Text(
                   'Nível $userLevel',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white70,
-                    fontSize: 14,
+                    fontSize: context.scaleFont(14),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -532,7 +533,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       child: Icon(
                         isLocked ? Icons.lock_outline : icon,
-                        size: 32,
+                        size: context.scaleIcon(32),
                         color: isLocked ? Colors.grey : color,
                       ),
                     ),
@@ -547,9 +548,9 @@ class _HomePageState extends State<HomePage> {
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.check,
-                            size: 12,
+                            size: context.scaleIcon(12),
                             color: Colors.white,
                           ),
                         ),
@@ -569,7 +570,7 @@ class _HomePageState extends State<HomePage> {
                             child: Text(
                               activity.name,
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: context.scaleFont(18),
                                 fontWeight: FontWeight.bold,
                                 color: isLocked ? Colors.grey : Colors.black87,
                               ),
@@ -588,7 +589,7 @@ class _HomePageState extends State<HomePage> {
                               child: Text(
                                 'Nível ${activity.requiredLevel}',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: context.scaleFont(12),
                                   fontWeight: FontWeight.bold,
                                   color: Colors.orange.shade900,
                                 ),
@@ -602,7 +603,7 @@ class _HomePageState extends State<HomePage> {
                             ? 'Complete atividades anteriores para desbloquear'
                             : activity.description,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: context.scaleFont(14),
                           color: Colors.grey[600],
                         ),
                       ),
@@ -611,12 +612,12 @@ class _HomePageState extends State<HomePage> {
                           padding: const EdgeInsets.only(top: 8),
                           child: Row(
                             children: [
-                              Icon(Icons.star, size: 16, color: Colors.amber),
+                              Icon(Icons.star, size: context.scaleIcon(16), color: Colors.amber),
                               const SizedBox(width: 4),
                               Text(
                                 '+${activity.points} pontos',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: context.scaleFont(12),
                                   fontWeight: FontWeight.w600,
                                   color: Colors.amber.shade700,
                                 ),
@@ -630,7 +631,7 @@ class _HomePageState extends State<HomePage> {
                           child: Text(
                             '✓ Completada',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: context.scaleFont(12),
                               fontWeight: FontWeight.bold,
                               color: Colors.green.shade700,
                             ),
@@ -646,7 +647,7 @@ class _HomePageState extends State<HomePage> {
                 Icon(
                   isLocked ? Icons.lock : Icons.arrow_forward_ios,
                   color: Colors.grey[400],
-                  size: 20,
+                  size: context.scaleIcon(20),
                 ),
               ],
             ),
@@ -665,7 +666,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             Icon(Icons.lock, color: Colors.orange.shade700),
             const SizedBox(width: 8),
-            const Text('Atividade Bloqueada'),
+            Text('Atividade Bloqueada'),
           ],
         ),
         content: Column(
@@ -674,7 +675,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             Text(
               'Você precisa estar no nível ${activity.requiredLevel} para acessar esta atividade.',
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: context.scaleFont(16)),
             ),
             const SizedBox(height: 16),
             Container(
@@ -694,9 +695,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     'Complete as atividades anteriores para subir de nível e desbloquear novas atividades!',
-                    style: TextStyle(fontSize: 14),
+                    style: TextStyle(fontSize: context.scaleFont(14)),
                   ),
                 ],
               ),
@@ -706,7 +707,7 @@ class _HomePageState extends State<HomePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Entendi'),
+            child: Text('Entendi'),
           ),
         ],
       ),
@@ -718,12 +719,12 @@ class _HomePageState extends State<HomePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Sair'),
-        content: const Text('Deseja realmente sair da sua conta?'),
+        title: Text('Sair'),
+        content: Text('Deseja realmente sair da sua conta?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
+            child: Text('Cancelar'),
           ),
           TextButton(
             onPressed: () async {
@@ -740,7 +741,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.of(context).pushReplacementNamed('/login');
               }
             },
-            child: const Text(
+            child: Text(
               'Sair',
               style: TextStyle(color: Colors.red),
             ),
