@@ -21,12 +21,12 @@ class AppTheme {
 
   /// Tema colorido e amigável para crianças
   static ThemeData getColorfulTheme({
-    required bool useDyslexicFont,
     required double fontSizeMultiplier,
     required double iconSizeMultiplier,
   }) {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'OpenDyslexic',
 
       // Esquema de cores alegre
       colorScheme: ColorScheme.fromSeed(
@@ -43,7 +43,6 @@ class AppTheme {
 
       // Tipografia com fonte para dislexia ou Sans Serif
       textTheme: _buildTextTheme(
-        useDyslexicFont: useDyslexicFont,
         fontSizeMultiplier: fontSizeMultiplier,
         color: Colors.black87,
       ),
@@ -55,7 +54,7 @@ class AppTheme {
         elevation: 2,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          fontFamily: useDyslexicFont ? 'OpenDyslexic' : 'Roboto',
+          fontFamily: 'OpenDyslexic',
           fontSize: 22 * fontSizeMultiplier,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -73,7 +72,7 @@ class AppTheme {
           ),
           elevation: 4,
           textStyle: TextStyle(
-            fontFamily: useDyslexicFont ? 'OpenDyslexic' : 'Roboto',
+            fontFamily: 'OpenDyslexic',
             fontSize: 18 * fontSizeMultiplier,
             fontWeight: FontWeight.bold,
           ),
@@ -85,7 +84,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: primaryColorful,
           textStyle: TextStyle(
-            fontFamily: useDyslexicFont ? 'OpenDyslexic' : 'Roboto',
+            fontFamily: 'OpenDyslexic',
             fontSize: 16 * fontSizeMultiplier,
             fontWeight: FontWeight.w600,
           ),
@@ -130,12 +129,12 @@ class AppTheme {
 
   /// Tema de alto contraste (preto e branco)
   static ThemeData getHighContrastTheme({
-    required bool useDyslexicFont,
     required double fontSizeMultiplier,
     required double iconSizeMultiplier,
   }) {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'OpenDyslexic',
 
       // Esquema de cores preto e branco
       colorScheme: const ColorScheme(
@@ -156,7 +155,6 @@ class AppTheme {
 
       // Tipografia com alto contraste
       textTheme: _buildTextTheme(
-        useDyslexicFont: useDyslexicFont,
         fontSizeMultiplier: fontSizeMultiplier,
         color: textHighContrast,
       ),
@@ -168,7 +166,7 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          fontFamily: useDyslexicFont ? 'OpenDyslexic' : 'Roboto',
+          fontFamily: 'OpenDyslexic',
           fontSize: 22 * fontSizeMultiplier,
           fontWeight: FontWeight.bold,
           color: secondaryHighContrast,
@@ -187,7 +185,7 @@ class AppTheme {
           ),
           elevation: 0,
           textStyle: TextStyle(
-            fontFamily: useDyslexicFont ? 'OpenDyslexic' : 'Roboto',
+            fontFamily: 'OpenDyslexic',
             fontSize: 18 * fontSizeMultiplier,
             fontWeight: FontWeight.bold,
           ),
@@ -199,7 +197,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: primaryHighContrast,
           textStyle: TextStyle(
-            fontFamily: useDyslexicFont ? 'OpenDyslexic' : 'Roboto',
+            fontFamily: 'OpenDyslexic',
             fontSize: 16 * fontSizeMultiplier,
             fontWeight: FontWeight.bold,
             decoration: TextDecoration.underline,
@@ -246,11 +244,10 @@ class AppTheme {
 
   /// Constrói tema de tipografia personalizado
   static TextTheme _buildTextTheme({
-    required bool useDyslexicFont,
     required double fontSizeMultiplier,
     required Color color,
   }) {
-    final fontFamily = useDyslexicFont ? 'OpenDyslexic' : 'Roboto';
+    const fontFamily = 'OpenDyslexic';
 
     return TextTheme(
       // Títulos grandes

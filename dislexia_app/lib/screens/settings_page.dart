@@ -34,8 +34,6 @@ class SettingsPage extends StatelessWidget {
               _buildSectionTitle(context, 'Visual', Icons.visibility),
               const SizedBox(height: 16),
               _buildHighContrastSwitch(context, accessibilityProvider),
-              const SizedBox(height: 12),
-              _buildDyslexicFontSwitch(context, accessibilityProvider),
               const SizedBox(height: 32),
 
               // Seção: Tamanhos
@@ -139,26 +137,6 @@ class SettingsPage extends StatelessWidget {
       trailing: Switch(
         value: provider.highContrast,
         onChanged: (_) => provider.toggleHighContrast(),
-        activeColor: Theme.of(context).primaryColor,
-      ),
-    );
-  }
-
-  /// Switch de fonte para dislexia
-  Widget _buildDyslexicFontSwitch(
-    BuildContext context,
-    AccessibilityProvider provider,
-  ) {
-    return _buildSettingCard(
-      context,
-      icon: Icons.font_download,
-      title: 'Fonte OpenDyslexic',
-      subtitle: provider.useDyslexicFont
-          ? 'Fonte otimizada para dislexia ativada'
-          : 'Usando fonte padrão',
-      trailing: Switch(
-        value: provider.useDyslexicFont,
-        onChanged: (_) => provider.toggleDyslexicFont(),
         activeColor: Theme.of(context).primaryColor,
       ),
     );

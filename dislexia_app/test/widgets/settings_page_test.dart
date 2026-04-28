@@ -77,13 +77,6 @@ void main() {
       expect(find.byType(Switch), findsWidgets);
     });
 
-    testWidgets('deve ter switch de fonte OpenDyslexic',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createTestWidget());
-
-      expect(find.text('Fonte OpenDyslexic'), findsOneWidget);
-    });
-
     testWidgets('deve ter slider de tamanho de texto',
         (WidgetTester tester) async {
       await tester.pumpWidget(createTestWidget());
@@ -203,14 +196,6 @@ void main() {
       expect(find.text('Tema colorido e amigável'), findsOneWidget);
     });
 
-    testWidgets('deve mostrar texto correto quando fonte OpenDyslexic está ativa',
-        (WidgetTester tester) async {
-      accessibilityProvider.toggleDyslexicFont();
-      await tester.pumpWidget(createTestWidget());
-
-      expect(find.text('Fonte otimizada para dislexia ativada'), findsOneWidget);
-    });
-
     testWidgets('deve mostrar texto correto quando animações estão ativas',
         (WidgetTester tester) async {
       await tester.pumpWidget(createTestWidget());
@@ -238,7 +223,6 @@ void main() {
 
       // Ícones de controles
       expect(find.byIcon(Icons.contrast), findsOneWidget);
-      expect(find.byIcon(Icons.font_download), findsOneWidget);
       expect(find.byIcon(Icons.animation), findsOneWidget);
       expect(find.byIcon(Icons.volume_up), findsOneWidget);
     });
