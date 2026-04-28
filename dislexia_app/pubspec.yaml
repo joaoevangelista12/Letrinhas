@@ -31,8 +31,6 @@ dependencies:
   # Persistência de configurações
   shared_preferences: ^2.3.3
 
-  # Fontes do Google (fallback se OpenDyslexic não estiver disponível)
-  google_fonts: ^6.2.1
 
   # Formatação de datas e números
   intl: ^0.19.0

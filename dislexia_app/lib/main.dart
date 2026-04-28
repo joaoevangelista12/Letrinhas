@@ -63,7 +63,7 @@ void main() async {
 ///
 /// Ambos os temas respeitam:
 /// - Tamanho de fonte configurável (0.8x a 1.4x)
-/// - Fonte OpenDyslexic opcional
+/// - Fonte OpenDyslexic fixa em toda a interface
 /// - Tamanho de ícones ajustável
 class DislexiaApp extends StatefulWidget {
   const DislexiaApp({super.key});
@@ -91,12 +91,10 @@ class _DislexiaAppState extends State<DislexiaApp> {
 
       theme: accessibilityProvider.highContrast
           ? AppTheme.getHighContrastTheme(
-              useDyslexicFont: accessibilityProvider.useDyslexicFont,
               fontSizeMultiplier: accessibilityProvider.fontSize,
               iconSizeMultiplier: accessibilityProvider.iconSize,
             )
           : AppTheme.getColorfulTheme(
-              useDyslexicFont: accessibilityProvider.useDyslexicFont,
               fontSizeMultiplier: accessibilityProvider.fontSize,
               iconSizeMultiplier: accessibilityProvider.iconSize,
             ),

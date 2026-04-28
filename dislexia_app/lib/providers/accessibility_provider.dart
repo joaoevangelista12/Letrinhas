@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Permite personalizar a experiência para usuários com dislexia
 class AccessibilityProvider extends ChangeNotifier {
   bool _highContrast = false;
-  bool _useDyslexicFont = true;
   double _fontSize = 1.0; // Multiplicador (0.8, 1.0, 1.2, 1.4)
   double _iconSize = 1.0; // Multiplicador (1.0, 1.2, 1.4)
   bool _enableAnimations = true;
@@ -17,13 +16,11 @@ class AccessibilityProvider extends ChangeNotifier {
   Timer? _debounceTimer;
 
   static const String _keyHighContrast = 'high_contrast';
-  static const String _keyDyslexicFont = 'dyslexic_font';
   static const String _keyFontSize = 'font_size';
   static const String _keyIconSize = 'icon_size';
   static const String _keyAnimations = 'enable_animations';
 
   bool get highContrast => _highContrast;
-  bool get useDyslexicFont => _useDyslexicFont;
   double get fontSize => _fontSize;
   double get iconSize => _iconSize;
   bool get enableAnimations => _enableAnimations;
@@ -33,7 +30,6 @@ class AccessibilityProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       _highContrast = prefs.getBool(_keyHighContrast) ?? false;
-      _useDyslexicFont = prefs.getBool(_keyDyslexicFont) ?? true;
       _fontSize = prefs.getDouble(_keyFontSize) ?? 1.0;
       _iconSize = prefs.getDouble(_keyIconSize) ?? 1.0;
       _enableAnimations = prefs.getBool(_keyAnimations) ?? true;
@@ -46,13 +42,6 @@ class AccessibilityProvider extends ChangeNotifier {
   /// Alterna modo alto contraste
   Future<void> toggleHighContrast() async {
     _highContrast = !_highContrast;
-    notifyListeners();
-    await _saveSettings();
-  }
-
-  /// Alterna uso da fonte para dislexia
-  Future<void> toggleDyslexicFont() async {
-    _useDyslexicFont = !_useDyslexicFont;
     notifyListeners();
     await _saveSettings();
   }
@@ -93,7 +82,6 @@ class AccessibilityProvider extends ChangeNotifier {
   /// Reseta todas as configurações para os valores padrão
   Future<void> resetToDefaults() async {
     _highContrast = false;
-    _useDyslexicFont = true;
     _fontSize = 1.0;
     _iconSize = 1.0;
     _enableAnimations = true;
@@ -106,7 +94,6 @@ class AccessibilityProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_keyHighContrast, _highContrast);
-      await prefs.setBool(_keyDyslexicFont, _useDyslexicFont);
       await prefs.setDouble(_keyFontSize, _fontSize);
       await prefs.setDouble(_keyIconSize, _iconSize);
       await prefs.setBool(_keyAnimations, _enableAnimations);
