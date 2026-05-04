@@ -107,16 +107,21 @@ class _DislexiaAppState extends State<DislexiaApp> {
   Widget build(BuildContext context) {
     final accessibilityProvider = context.watch<AccessibilityProvider>();
 
-    return MaterialApp(
-  title: 'Letrinhas',
-  debugShowCheckedModeBanner: false,
+  return MaterialApp(
+      title: 'Letrinhas',
+      debugShowCheckedModeBanner: false,
 
-  theme: ThemeData(
-    fontFamily: 'OpenDyslexic',
-  ),
+      theme: accessibilityProvider.highContrast
+          ? AppTheme.getHighContrastTheme(
+              fontSizeMultiplier: accessibilityProvider.fontSize,
+              iconSizeMultiplier: accessibilityProvider.iconSize,
+            )
+          : AppTheme.getColorfulTheme(
+              fontSizeMultiplier: accessibilityProvider.fontSize,
+              iconSizeMultiplier: accessibilityProvider.iconSize,
+            ),
 
-  initialRoute: '/',
-);
+      initialRoute: '/',
 
       routes: {
         '/': (context) => const SplashPage(),
