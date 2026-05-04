@@ -264,3 +264,19 @@ Os testes estão organizados em `test/` cobrindo models, services, providers e w
 ## Autor
 
 **João Victor Evangelista** — Análise e Desenvolvimento de Sistemas, 2025
+
+## Troubleshooting de Fonte (OpenDyslexic)
+
+Se o app exibir Roboto, execute a limpeza completa de cache e assets no diretório `dislexia_app/`:
+
+```bash
+flutter clean
+flutter pub get
+flutter run
+```
+
+Checklist rápido:
+- rode os comandos acima **dentro** de `dislexia_app/`
+- confirme que `pubspec.yaml` mantém a família `OpenDyslexic` e os dois arquivos `.ttf`
+- confirme que os arquivos existem em `assets/fonts/`
+

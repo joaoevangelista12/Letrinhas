@@ -1,6 +1,7 @@
 // arquivo: lib/main.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -28,6 +29,25 @@ import 'widgets/protected_activity.dart';
 ///
 /// O Firebase é configurado automaticamente para a plataforma atual
 /// (Web, Android ou iOS) usando [DefaultFirebaseOptions].
+
+Future<void> _validateCriticalAssets() async {
+  const requiredAssets = [
+    'assets/fonts/OpenDyslexic-Regular.ttf',
+    'assets/fonts/OpenDyslexic-Bold.ttf',
+  ];
+
+  for (final assetPath in requiredAssets) {
+    try {
+      await rootBundle.load(assetPath);
+    } catch (e) {
+      throw FlutterError(
+        'Asset obrigatório não encontrado: $assetPath. '
+        'Sem esse arquivo o Flutter usa Roboto como fallback. Erro original: $e',
+      );
+    }
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -35,6 +55,8 @@ void main() async {
   // permanece vivo entre restarts, mas Firebase.apps se esvazia no lado Dart.
   // O google-services plugin foi removido do build e o FirebaseInitProvider
   // está desabilitado no AndroidManifest, portanto este guard é confiável.
+  await _validateCriticalAssets();
+
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
