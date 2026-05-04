@@ -108,20 +108,15 @@ class _DislexiaAppState extends State<DislexiaApp> {
     final accessibilityProvider = context.watch<AccessibilityProvider>();
 
     return MaterialApp(
-      title: 'Letrinhas',
-      debugShowCheckedModeBanner: false,
+  title: 'Letrinhas',
+  debugShowCheckedModeBanner: false,
 
-      theme: accessibilityProvider.highContrast
-          ? AppTheme.getHighContrastTheme(
-              fontSizeMultiplier: accessibilityProvider.fontSize,
-              iconSizeMultiplier: accessibilityProvider.iconSize,
-            )
-          : AppTheme.getColorfulTheme(
-              fontSizeMultiplier: accessibilityProvider.fontSize,
-              iconSizeMultiplier: accessibilityProvider.iconSize,
-            ),
+  theme: ThemeData(
+    fontFamily: 'OpenDyslexic',
+  ),
 
-      initialRoute: '/',
+  initialRoute: '/',
+);
 
       routes: {
         '/': (context) => const SplashPage(),
