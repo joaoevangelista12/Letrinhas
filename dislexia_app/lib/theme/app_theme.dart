@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 /// Definição de temas do aplicativo
 /// Contém tema colorido/amigável e tema de alto contraste
 class AppTheme {
+  static const String appFontFamily = 'OpenDyslexic';
   // Cores do tema colorido (para crianças)
   static const Color primaryColorful = Color(0xFF4CAF50); // Verde amigável
   static const Color secondaryColorful = Color(0xFFFFEB3B); // Amarelo alegre
@@ -26,7 +27,7 @@ class AppTheme {
   }) {
     return ThemeData(
       useMaterial3: true,
-      fontFamily: 'OpenDyslexic',
+      fontFamily: appFontFamily,
 
       // Esquema de cores alegre
       colorScheme: ColorScheme.fromSeed(
@@ -54,7 +55,7 @@ class AppTheme {
         elevation: 2,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          fontFamily: 'OpenDyslexic',
+          fontFamily: appFontFamily,
           fontSize: 22 * fontSizeMultiplier,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -72,7 +73,7 @@ class AppTheme {
           ),
           elevation: 4,
           textStyle: TextStyle(
-            fontFamily: 'OpenDyslexic',
+            fontFamily: appFontFamily,
             fontSize: 18 * fontSizeMultiplier,
             fontWeight: FontWeight.bold,
           ),
@@ -84,7 +85,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: primaryColorful,
           textStyle: TextStyle(
-            fontFamily: 'OpenDyslexic',
+            fontFamily: appFontFamily,
             fontSize: 16 * fontSizeMultiplier,
             fontWeight: FontWeight.w600,
           ),
@@ -134,7 +135,7 @@ class AppTheme {
   }) {
     return ThemeData(
       useMaterial3: true,
-      fontFamily: 'OpenDyslexic',
+      fontFamily: appFontFamily,
 
       // Esquema de cores preto e branco
       colorScheme: const ColorScheme(
@@ -166,7 +167,7 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          fontFamily: 'OpenDyslexic',
+          fontFamily: appFontFamily,
           fontSize: 22 * fontSizeMultiplier,
           fontWeight: FontWeight.bold,
           color: secondaryHighContrast,
@@ -185,7 +186,7 @@ class AppTheme {
           ),
           elevation: 0,
           textStyle: TextStyle(
-            fontFamily: 'OpenDyslexic',
+            fontFamily: appFontFamily,
             fontSize: 18 * fontSizeMultiplier,
             fontWeight: FontWeight.bold,
           ),
@@ -197,7 +198,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: primaryHighContrast,
           textStyle: TextStyle(
-            fontFamily: 'OpenDyslexic',
+            fontFamily: appFontFamily,
             fontSize: 16 * fontSizeMultiplier,
             fontWeight: FontWeight.bold,
             decoration: TextDecoration.underline,
@@ -247,26 +248,30 @@ class AppTheme {
     required double fontSizeMultiplier,
     required Color color,
   }) {
-    const fontFamily = 'OpenDyslexic';
+    final baseTextTheme = Typography.material2021().black;
 
-    return TextTheme(
+    return baseTextTheme.apply(
+      fontFamily: appFontFamily,
+      displayColor: color,
+      bodyColor: color,
+    ).copyWith(
       // Títulos grandes
       displayLarge: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 36 * fontSizeMultiplier,
         fontWeight: FontWeight.bold,
         color: color,
         height: 1.4, // Espaçamento entre linhas (importante para dislexia)
       ),
       displayMedium: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 32 * fontSizeMultiplier,
         fontWeight: FontWeight.bold,
         color: color,
         height: 1.4,
       ),
       displaySmall: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 28 * fontSizeMultiplier,
         fontWeight: FontWeight.bold,
         color: color,
@@ -275,21 +280,21 @@ class AppTheme {
 
       // Títulos médios
       headlineLarge: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 26 * fontSizeMultiplier,
         fontWeight: FontWeight.w600,
         color: color,
         height: 1.4,
       ),
       headlineMedium: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 24 * fontSizeMultiplier,
         fontWeight: FontWeight.w600,
         color: color,
         height: 1.4,
       ),
       headlineSmall: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 22 * fontSizeMultiplier,
         fontWeight: FontWeight.w600,
         color: color,
@@ -298,21 +303,21 @@ class AppTheme {
 
       // Títulos pequenos
       titleLarge: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 20 * fontSizeMultiplier,
         fontWeight: FontWeight.w600,
         color: color,
         height: 1.4,
       ),
       titleMedium: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 18 * fontSizeMultiplier,
         fontWeight: FontWeight.w500,
         color: color,
         height: 1.4,
       ),
       titleSmall: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 16 * fontSizeMultiplier,
         fontWeight: FontWeight.w500,
         color: color,
@@ -321,19 +326,19 @@ class AppTheme {
 
       // Corpo de texto
       bodyLarge: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 18 * fontSizeMultiplier,
         color: color,
         height: 1.5,
       ),
       bodyMedium: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 16 * fontSizeMultiplier,
         color: color,
         height: 1.5,
       ),
       bodySmall: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 14 * fontSizeMultiplier,
         color: color,
         height: 1.5,
@@ -341,21 +346,21 @@ class AppTheme {
 
       // Labels
       labelLarge: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 16 * fontSizeMultiplier,
         fontWeight: FontWeight.w600,
         color: color,
         height: 1.4,
       ),
       labelMedium: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 14 * fontSizeMultiplier,
         fontWeight: FontWeight.w500,
         color: color,
         height: 1.4,
       ),
       labelSmall: TextStyle(
-        fontFamily: fontFamily,
+        fontFamily: appFontFamily,
         fontSize: 12 * fontSizeMultiplier,
         fontWeight: FontWeight.w500,
         color: color,
